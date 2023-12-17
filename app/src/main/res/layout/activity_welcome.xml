@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".WelcomeActivity">
+    tools:context=".activity.WelcomeActivity">
 
 
     <ImageView
@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="175dp"
         android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/logo_black" />
 
@@ -20,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/im_logo_black"
+        android:layout_centerHorizontal="true"
         android:layout_marginBottom="200dp"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/welcome_pic" />
@@ -40,26 +42,36 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/tv_slogan"
-        android:layout_marginTop="40dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_centerHorizontal="true"
         android:backgroundTint="@color/blue5"
         android:text="Đăng nhập"
         android:textColor="@color/white"
-        android:textSize="20dp"/>
+        android:textSize="20dp"
+        android:textStyle="bold"
+        />
+
     <Button
         android:id="@+id/btn_register"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_login"
-        android:textColor="@color/blue5"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_centerHorizontal="true"
+
         android:background="@drawable/outline"
         android:text="Đăng ký"
+        android:textColor="@color/blue5"
         android:textSize="20dp"
-        app:backgroundTint="@null"
-        />
-    <TextView
-        android:id="@+id/tv_policy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text=""/>
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
+
 </RelativeLayout>

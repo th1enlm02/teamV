@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_board_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginTop="5dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    android:layout_marginBottom="5dp"
+    app:cardCornerRadius="20dp">
+
+    <RelativeLayout
+        android:id="@+id/rl_item_board"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/iv_avt_board"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_main_logo"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="5dp"
+            />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_toRightOf="@id/iv_avt_board"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/iv_edit_board"
+            android:layout_marginEnd="10dp"
+            android:weightSum="2"
+            android:layout_marginStart="10dp"
+            >
+            <TextView
+                android:id="@+id/tv_board_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Board's name"
+                android:textSize="15dp"
+                android:textStyle="bold"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:singleLine="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                />
+            <TextView
+                android:id="@+id/tv_board_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="dd/mm/yy HH:mm a"
+                android:textSize="12dp"
+                android:textStyle="italic"
+                android:layout_weight="1"
+                />
+        </LinearLayout>
+        <ImageView
+            android:id="@+id/iv_edit_board"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_edit_board"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            />
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

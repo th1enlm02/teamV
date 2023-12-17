@@ -1,4 +1,4 @@
-package com.example.teamv;
+package com.example.teamv.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,25 +12,26 @@ import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.teamv.R;
+import com.example.teamv.object.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText etFullname, etEmail, etPassword, etConfirmPassword;
@@ -39,18 +40,18 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private static final String TAG = "RegisterActivity";
 
+    // key cho thông tin của user
+    private static final String KEY_FULLNAME = "fullname";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_PASSWORD = "password";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        etFullname = (EditText) findViewById(R.id.et_fullname);
-        etEmail = (EditText) findViewById(R.id.et_email);
-        etPassword = (EditText) findViewById(R.id.et_password);
-        etConfirmPassword = (EditText) findViewById(R.id.et_confirm_password);
-        btnRegister = (Button) findViewById(R.id.btn_register);
-        tvLogin = (TextView) findViewById(R.id.tv_login);
-        progressBar = (ProgressBar) findViewById(R.id.process_bar_register);
+        // get view
+        findViewByIds();
 
         // Che và hiển thị mật khẩu
         ImageView imShowHidePassword = findViewById(R.id.im_show_hide_password);
@@ -99,6 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
                 finish();
             }
         });
+
         // Bắt sự kiện nhấn nút Đăng ký
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -158,36 +160,66 @@ public class RegisterActivity extends AppCompatActivity {
                                 if (task.isSuccessful()){
                                     FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
-                                    // Lưu thông tin người dùng vào Firebase Realtime Database
-                                    ReadWriteUserDetails writeUserDetails = new ReadWriteUserDetails(fullname, email, password);
+//                                    // Trích xuất thông tin người dùng từ CSDL cho "Users"
+//                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+//                                    databaseReference.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                        @Override
+//                                        public void onComplete(@NonNull Task<Void> task) {
+//                                            if (task.isSuccessful()) {
+//                                                // Gửi mã xác nhận
+//                                                firebaseUser.sendEmailVerification();
+//                                                Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận đăng ký",
+//                                                        Toast.LENGTH_LONG).show();
+//                                                // Gửi email xác nhận
+//                                                firebaseUser.sendEmailVerification();
+//
+//                                                // Chuyển sang màn hình đăng nhập
+//                                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+//                                                // Ngăn không cho chuyên về giao diện đăng ký khi bấm phím back sau khi đăng ký
+//                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+//                                                startActivity(intent);
+//                                                finish();
+//                                            } else {
+//                                                Toast.makeText(RegisterActivity.this, "Đăng ký không thành công. Vui lòng thử lại",
+//                                                        Toast.LENGTH_LONG).show();
+//                                            }
+//                                            progressBar.setVisibility(View.GONE);
+//                                        }
+//                                    });
+                                    FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+//                                    Map<String, Object> user = new HashMap<>();
+//                                    user.put(KEY_FULLNAME, fullname);
+//                                    user.put(KEY_EMAIL, email);
+//                                    user.put(KEY_PASSWORD, password);
 
-                                    // Trích xuất thông tin người dùng từ CSDL cho "Users"
-                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+                                    // Khởi tạo thông tin user vừa đăng ký lưu vào database
+                                    User user = new User(fullname, email, password);
 
-                                    databaseReference.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                // Gửi mã xác nhận
-                                                firebaseUser.sendEmailVerification();
-                                                Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận đăng ký",
-                                                        Toast.LENGTH_LONG).show();
-                                                // Gửi email xác nhận
-                                                firebaseUser.sendEmailVerification();
+                                    firestore.collection("User").document(firebaseUser.getUid()).set(user)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        // Gửi mã xác nhận
+                                                        firebaseUser.sendEmailVerification();
+                                                        Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận đăng ký",
+                                                                Toast.LENGTH_LONG).show();
+                                                        // Gửi email xác nhận
+                                                        firebaseUser.sendEmailVerification();
 
-                                                // Chuyển sang màn hình đăng nhập
-                                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                // Ngăn không cho chuyên về giao diện đăng ký khi bấm phím back sau khi đăng ký
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                startActivity(intent);
-                                                finish();
-                                            } else {
-                                                Toast.makeText(RegisterActivity.this, "Đăng ký không thành công. Vui lòng thử lại",
-                                                        Toast.LENGTH_LONG).show();
-                                            }
-                                            progressBar.setVisibility(View.GONE);
-                                        }
-                                    });
+                                                        // Chuyển sang màn hình đăng nhập
+                                                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                                        // Ngăn không cho chuyên về giao diện đăng ký khi bấm phím back sau khi đăng ký
+                                                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                        startActivity(intent);
+                                                        finish();
+                                                    } else {
+                                                        Toast.makeText(RegisterActivity.this, "Đăng ký không thành công. Vui lòng thử lại",
+                                                                Toast.LENGTH_LONG).show();
+                                                    }
+                                                    progressBar.setVisibility(View.GONE);
+                                                }
+                                            });
                                 } else {
                                     progressBar.setVisibility(View.GONE);
                                     try {
@@ -210,5 +242,14 @@ public class RegisterActivity extends AppCompatActivity {
                         });
             }
         });
+    }
+    private void findViewByIds() {
+        etFullname = (EditText) findViewById(R.id.et_fullname);
+        etEmail = (EditText) findViewById(R.id.et_email);
+        etPassword = (EditText) findViewById(R.id.et_password);
+        etConfirmPassword = (EditText) findViewById(R.id.et_confirm_password);
+        btnRegister = (Button) findViewById(R.id.btn_register);
+        tvLogin = (TextView) findViewById(R.id.tv_login);
+        progressBar = (ProgressBar) findViewById(R.id.process_bar_register);
     }
 }
