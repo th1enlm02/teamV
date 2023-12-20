@@ -3,24 +3,14 @@ package com.example.teamv.object;
 import java.io.Serializable;
 
 public class Board implements Serializable {
-    private String id;
     private String name;
     private int resource_id;
     private String created_at;
     public Board() {};
-    public Board(String id, String name, int resource_id, String created_at) {
-        this.id = id;
+    public Board(String name, int resource_id, String created_at) {
         this.name = name;
         this.resource_id = resource_id;
         this.created_at = created_at;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
     public String getName() {
         return name;

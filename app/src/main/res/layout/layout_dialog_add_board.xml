@@ -64,21 +64,13 @@
                 android:textStyle="bold"
                 android:layout_alignParentLeft="true"
                 />
-            <Button
-                android:id="@+id/btn_board_color"
+            <ImageView
+                android:id="@+id/iv_board_color"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_toRightOf="@id/tv_board_color"
-                android:background="@drawable/custom_choose_color_button"
+                android:background="@color/white"
                 android:layout_marginStart="20dp"
-                />
-            <ProgressBar
-                android:id="@+id/process_bar_add_board"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:elevation="10dp"
-                android:visibility="gone"
                 />
         </RelativeLayout>
         <com.google.android.material.divider.MaterialDivider

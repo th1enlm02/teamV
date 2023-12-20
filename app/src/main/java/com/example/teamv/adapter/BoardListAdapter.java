@@ -28,7 +28,6 @@ public class BoardListAdapter extends RecyclerView.Adapter<BoardListAdapter.Boar
         this.boards = boards;
         this.clickBoardItemInterface = clickBoardItemInterface;
     }
-
     @NonNull
     @Override
     public BoardListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

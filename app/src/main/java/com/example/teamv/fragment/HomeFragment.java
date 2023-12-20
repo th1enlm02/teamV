@@ -17,23 +17,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.teamv.activity.StatusList;
+import com.example.teamv.adapter.ColorPickerAdapter;
 import com.example.teamv.my_interface.ClickBoardItemInterface;
 import com.example.teamv.object.Board;
 import com.example.teamv.R;
 import com.example.teamv.adapter.BoardListAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,7 +54,16 @@ public class HomeFragment extends Fragment {
     private RecyclerView rvBoardList;
     private ImageView ivAddBoard;
     private BoardListAdapter boardListAdapter;
-    private List <Board> boards;
+    private List <Board> boards = new ArrayList<>();;
+    private ImageView ivBroadColor;
+    private EditText etFindBoard;
+    private ProgressBar progressBar;
+    private int selectedColor = R.color.yellow;
+    private FirebaseFirestore writeBoardfirestore = FirebaseFirestore.getInstance();
+    private FirebaseFirestore readBoardFirestore = FirebaseFirestore.getInstance();
+    private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private String userID = getUserID();
+    private CollectionReference boardCollectionReference;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -54,6 +71,12 @@ public class HomeFragment extends Fragment {
 
         // get view
         findViewByIds(view);
+
+        // set default board
+        boards.add(new Board("Demo", R.drawable.ic_main_logo, getCurrentTime()));
+
+        // get my board data
+        readMyBoardData();
 
         // set adapter
         setBoardListAdapter(view);
@@ -65,20 +88,16 @@ public class HomeFragment extends Fragment {
                 openAddBoardDialog();
             }
         });
-
         // Inflate the layout for this fragment
         return view;
     }
-    private void findViewByIds(View view){
-        rvBoardList = (RecyclerView) view.findViewById(R.id.rv_board_list);
-        ivAddBoard = (ImageView) view.findViewById(R.id.iv_add_board);
+    private void setDefaultBoard () {
+        Board defaultBoard = new Board("Công việc cần làm", R.drawable.ic_main_logo, getCurrentTime());
+        writeBoardDataToFireStore(defaultBoard);
     }
     private void setBoardListAdapter(View view){
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
         rvBoardList.setLayoutManager(layoutManager);
-
-        boards = new ArrayList<>();
-        setDefaultBoardList();
 
         boardListAdapter = new BoardListAdapter(boards, new ClickBoardItemInterface() {
             @Override
@@ -88,6 +107,7 @@ public class HomeFragment extends Fragment {
         });
         rvBoardList.setAdapter(boardListAdapter);
     }
+    // Hàm mở dialog thêm bảng
     private void openAddBoardDialog() {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -108,7 +128,15 @@ public class HomeFragment extends Fragment {
         EditText etBoardName = dialog.findViewById(R.id.et_board_name);
         Button btnCancel = dialog.findViewById(R.id.btn_cancel);
         Button btnOK = dialog.findViewById(R.id.btn_ok);
-        ProgressBar progressBar = dialog.findViewById(R.id.process_bar_add_board);
+        ivBroadColor = dialog.findViewById(R.id.iv_board_color);
+
+        // Hàm thêm color picker
+        ivBroadColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openDiaLogColor();
+            }
+        });
 
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,65 +149,116 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Lấy thông tin của board được nhập vào
-                Board writeBoard = new Board(null, etBoardName.getText().toString(), R.drawable.ic_main_logo, getCurrentTime());
+                Board writeBoard = new Board(etBoardName.getText().toString(), selectedColor, getCurrentTime());
 
-                FirebaseFirestore writeBoardfirestore = FirebaseFirestore.getInstance();
-                CollectionReference collectionReference = writeBoardfirestore.collection("Board");
-
-                progressBar.setVisibility(View.VISIBLE);
-                collectionReference.add(writeBoard)
-                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                            @Override
-                            public void onSuccess(DocumentReference documentReference) {
-                                // Xử lý lấy thông tin board từ database về hiển thị lên recyclerview
-                                FirebaseFirestore readBoardFirestore = FirebaseFirestore.getInstance();
-                                documentReference = readBoardFirestore.collection("Board").document(documentReference.getId());
-                                documentReference.get()
-                                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                        Board readBoard = documentSnapshot.toObject(Board.class);
-                                        readBoard.setId(documentSnapshot.getId());
-                                        // Thêm board được read từ database vào rcv
-                                        boards.add(readBoard);
-                                        boardListAdapter.notifyDataSetChanged();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                                dialog.dismiss();
-                                Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        });
+                writeBoardDataToFireStore(writeBoard);
+                Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
             }
         });
         dialog.show();
     }
-    private String getCurrentTime() {
-        Date currentTime = new Date();
+    private void writeBoardDataToFireStore (Board writeBoard) {
+        String boardID = formatBoardId(getCurrentTime());
+        DocumentReference documentReference = writeBoardfirestore.collection("Board").document(boardID);
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MM:yy HH:mm a", Locale.getDefault());
-        return new String(simpleDateFormat.format(currentTime));
-    }
-    private void setDefaultBoardList() {
-        boards.add(new Board("", "Phát triển ưng dụng trên thiết bị di động", R.drawable.ic_main_logo, "1/1/2023 00:00 PM"));
-        boards.add(new Board("", "An toàn mạng máy tính", R.color.black, "1/1/2023 00:00 PM"));
-        boards.add(new Board("", "Thiết kế Mạng", R.drawable.ic_main_logo, "1/1/2023 00:00 PM"));
-        boards.add(new Board("", "Hệ thống nhúng Mạng không dây", R.drawable.ic_main_logo, "1/1/2023 00:00 PM"));
-    }
+        progressBar.setVisibility(View.VISIBLE);
+        documentReference.set(writeBoard)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        // thêm board vào list
+                        boards.add(writeBoard);
+                        boardListAdapter.notifyDataSetChanged();
 
+                        progressBar.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+    }
+    private void readMyBoardData() {
+        boardCollectionReference = readBoardFirestore.collection("Board");
+        boardCollectionReference.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            List<DocumentSnapshot> list = queryDocumentSnapshots.getDocuments();
+
+                            for (DocumentSnapshot documentSnapshot : list) {
+                                Board readBoard = documentSnapshot.toObject(Board.class);
+                                if (documentSnapshot.getId().equals(formatBoardId(readBoard.getCreated_at()))) {
+                                    boards.add(readBoard);
+                                }
+                            }
+                            boardListAdapter.notifyDataSetChanged();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    private void readAllBoardDataFromFirestore() {
+        boardCollectionReference = readBoardFirestore.collection("Board");
+        boardCollectionReference.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            List<DocumentSnapshot> list = queryDocumentSnapshots.getDocuments();
+
+                            for (DocumentSnapshot documentSnapshot : list) {
+                                Board readBoard = documentSnapshot.toObject(Board.class);
+                                boards.add(readBoard);
+                            }
+                            boardListAdapter.notifyDataSetChanged();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    public void openDiaLogColor()
+    {
+        Dialog dialog = new Dialog(getContext());
+        dialog.setContentView(R.layout.layout_dialog_color_picker);
+        GridView gridView = (GridView) dialog.findViewById(R.id.gridview_color_picker);
+        int[] colors = {
+                R.color.black, R.color.blue, R.color.red, R.color.green, R.color.yellow,
+                R.color.purple, R.color.orange, R.color.pink, R.color.brown, R.color.cyan,
+                R.color.teal, R.color.light_blue, R.color.gray, R.color.gold, R.color.silver,
+                R.color.lavender, R.color.turquoise, R.color.mint, R.color.salmon, R.color.coral,
+                R.color.violet, R.color.indigo, R.color.magenta, R.color.lime
+        };
+        ColorPickerAdapter adapter = new ColorPickerAdapter(getContext(),colors);
+        gridView.setAdapter(adapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                selectedColor = colors[position];
+
+                ivBroadColor.setImageResource(selectedColor);
+
+                dialog.cancel();
+            }
+        });
+        dialog.show();
+    }
     // Xử lý click vào board item
     private void onClickBoardItemGoToStatusList(Board board){
         Intent intent = new Intent(getContext(), StatusList.class);
@@ -188,5 +267,31 @@ public class HomeFragment extends Fragment {
         intent.putExtras(bundle);
         startActivity(intent);
     }
+    private void findViewByIds(View view){
+        rvBoardList = (RecyclerView) view.findViewById(R.id.rv_board_list);
+        ivAddBoard = (ImageView) view.findViewById(R.id.iv_add_board);
+        etFindBoard = (EditText) view.findViewById(R.id.et_find_board);
+        progressBar = (ProgressBar) view.findViewById(R.id.process_bar_add_board);
+    }
+    // get user id in firebase
+    private String getUserID() {
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        String userID = null;
+        if (firebaseUser == null) {
+            Toast.makeText(getActivity(), "Đã xảy ra lỗi. Thông tin người dùng hiện không có sẵn",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            userID = firebaseUser.getUid();
+        }
+        return userID;
+    }
+    private String formatBoardId(String date) {
+        return userID + "?" + date.replace(" ", "_");
+    }
+    private String getCurrentTime() {
+        Date currentTime = new Date();
 
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss a", Locale.getDefault());
+        return new String(simpleDateFormat.format(currentTime));
+    }
 }
