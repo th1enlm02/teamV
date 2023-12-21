@@ -73,7 +73,7 @@ public class HomeFragment extends Fragment {
         findViewByIds(view);
 
         // set default board
-        boards.add(new Board("Demo", R.drawable.ic_main_logo, getCurrentTime()));
+        boards.add(new Board("Demo", R.drawable.ic_main_logo, getCurrentTime(), userID));
 
         // get my board data
         readMyBoardData();
@@ -92,7 +92,7 @@ public class HomeFragment extends Fragment {
         return view;
     }
     private void setDefaultBoard () {
-        Board defaultBoard = new Board("Công việc cần làm", R.drawable.ic_main_logo, getCurrentTime());
+        Board defaultBoard = new Board("Công việc cần làm", R.drawable.ic_main_logo, getCurrentTime(), userID);
         writeBoardDataToFireStore(defaultBoard);
     }
     private void setBoardListAdapter(View view){
@@ -149,7 +149,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Lấy thông tin của board được nhập vào
-                Board writeBoard = new Board(etBoardName.getText().toString(), selectedColor, getCurrentTime());
+                Board writeBoard = new Board(etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
 
                 writeBoardDataToFireStore(writeBoard);
                 Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();

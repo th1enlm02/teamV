@@ -6,12 +6,16 @@ public class Board implements Serializable {
     private String name;
     private int resource_id;
     private String created_at;
+    private String user_id;
     public Board() {};
-    public Board(String name, int resource_id, String created_at) {
+
+    public Board(String name, int resource_id, String created_at, String user_id) {
         this.name = name;
         this.resource_id = resource_id;
         this.created_at = created_at;
+        this.user_id = user_id;
     }
+
     public String getName() {
         return name;
     }
