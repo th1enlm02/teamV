@@ -9,10 +9,9 @@
 
     <ImageView
         android:id="@+id/color_item"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="@color/yellow"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:background="@color/custom_blue"
         android:padding="5dp"
         />
-
 </androidx.cardview.widget.CardView>

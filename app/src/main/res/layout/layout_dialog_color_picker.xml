@@ -3,12 +3,28 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp">
+    android:background="@color/white"
+    >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Chọn màu cho bảng"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:background="@drawable/bg_corner_top_left_top_right"
+        android:padding="15dp"
+        />
     <GridView
         android:id="@+id/gridview_color_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:numColumns="4"/>
+        android:layout_margin="5dp"
+        android:numColumns="2"
+        android:verticalSpacing="10dp"
+        android:horizontalSpacing="10dp"
+        />
 
 </LinearLayout>

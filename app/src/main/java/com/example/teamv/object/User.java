@@ -1,14 +1,21 @@
 package com.example.teamv.object;
 
 public class User {
-    private String fullname, email, password;
+    private String user_id;
+    private String fullname;
+    private String email;
+    private String password;
     public User(){};
-    public User(String fullname, String email, String password) {
+    public User(String user_id, String fullname, String email, String password) {
+        this.user_id = user_id;
         this.fullname = fullname;
         this.email = email;
         this.password = password;
     }
 
+    public String getUser_id() {
+        return user_id;
+    }
     public String getFullname() {
         return fullname;
     }
@@ -19,6 +26,10 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 
     public void setFullname(String fullname) {

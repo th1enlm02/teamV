@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
@@ -34,6 +35,16 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvRegister;
     private Button btnLogin;
     private ProgressBar progressBar;
+
+    // Chuc Thien
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+    private String PREFERENCE_KEY = "LogIn_SharePreferences";
+    private String USER_KEY = "USER";
+    private String PASS_KEY = "PASS";
+    private String LOGIN_KEY = "LOGIN";
+    private Boolean isLogin; // Biến để kiểm tra đã đăng nhập hay chưa
+
     private static final String TAG = "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +56,11 @@ public class LoginActivity extends AppCompatActivity {
         tvRegister = (TextView) findViewById(R.id.tv_register);
         btnLogin = (Button) findViewById(R.id.btn_login);
         progressBar = (ProgressBar) findViewById(R.id.process_bar_login);
+
+        // Chuc Thien
+        sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
+        editor = sharedPreferences.edit();
+        checkLogin();
 
         // Che và hiển thị mật khẩu
         ImageView imShowHidePassword = findViewById(R.id.im_show_hide_password);
@@ -105,76 +121,89 @@ public class LoginActivity extends AppCompatActivity {
                     loginUser(email, password);
                 }
             }
+        });
+    }
+    private void loginUser(String email, String password) {
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
 
-            private void loginUser(String email, String password) {
-                FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-                firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
+                    // Lấy thông tin của User đã nhập
+                    FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
 
-                            // Lấy thông tin của User đã nhập
-                            FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-
-                            // Kiểm tra email đã được xác nhận chưa trước khi cho phép đăng nhập
-                            if (firebaseUser.isEmailVerified()) {
-                                Toast.makeText(LoginActivity.this, "Đăng nhập thành công!",
-                                        Toast.LENGTH_LONG).show();
-                                // Chuyển sang màn hình Home
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                // Ngăn không cho chuyên về giao diện đăng nhập khi bấm phím back sau khi đăng nhập
-                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                firebaseUser.sendEmailVerification();
-                                firebaseAuth.signOut();
-                                showAlertDialog();
-                            }
-                        } else {
-                            try {
-                                throw task.getException();
-                            } catch (FirebaseAuthInvalidUserException e){
-                                etEmail.setError("Người dùng không tồn tại hoặc không còn hiệu lực. Vui lòng nhập lại");
-                                etEmail.requestFocus();
-                            } catch (FirebaseAuthInvalidCredentialsException e) {
-                                etEmail.setError("Email và mật khẩu không trùng khớp. Vui lòng kiểm tra và nhập lại");
-                                etEmail.requestFocus();
-                            } catch (Exception e) {
-                                Log.e(TAG, e.getMessage());
-                                Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                            Toast.makeText(LoginActivity.this, "Đăng nhập không thành công. Vui lòng thử lại",
-                                    Toast.LENGTH_LONG).show();
-                        }
-                        progressBar.setVisibility(View.GONE);
+                    // Kiểm tra email đã được xác nhận chưa trước khi cho phép đăng nhập
+                    if (firebaseUser.isEmailVerified()) {
+                        Toast.makeText(LoginActivity.this, "Đăng nhập thành công!",
+                                Toast.LENGTH_LONG).show();
+                        // Chuyển sang màn hình Home
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        // Ngăn không cho chuyên về giao diện đăng nhập khi bấm phím back sau khi đăng nhập
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        firebaseUser.sendEmailVerification();
+                        firebaseAuth.signOut();
+                        showAlertDialog();
                     }
+                } else {
+                    try {
+                        throw task.getException();
+                    } catch (FirebaseAuthInvalidUserException e){
+                        etEmail.setError("Người dùng không tồn tại hoặc không còn hiệu lực. Vui lòng nhập lại");
+                        etEmail.requestFocus();
+                    } catch (FirebaseAuthInvalidCredentialsException e) {
+                        etEmail.setError("Email và mật khẩu không trùng khớp. Vui lòng kiểm tra và nhập lại");
+                        etEmail.requestFocus();
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                        Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                    Toast.makeText(LoginActivity.this, "Đăng nhập không thành công. Vui lòng thử lại",
+                            Toast.LENGTH_LONG).show();
+                }
+                progressBar.setVisibility(View.GONE);
+            }
 
-                    private void showAlertDialog() {
-                        // Thiết lập Alert Builder
-                        AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                        builder.setTitle("Email chưa được xác nhận");
-                        builder.setMessage("Vui lòng xác nhận email. Bạn không thể đăng nhập nếu email chưa được xác nhận");
+            private void showAlertDialog() {
+                // Thiết lập Alert Builder
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                builder.setTitle("Email chưa được xác nhận");
+                builder.setMessage("Vui lòng xác nhận email. Bạn không thể đăng nhập nếu email chưa được xác nhận");
 
-                        // Mở email nếu người dùng bấm vào nút Tiếp tục
-                        builder.setPositiveButton("Tiếp tục", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Intent intent = new Intent(Intent.ACTION_MAIN);
-                                intent.addCategory(Intent.CATEGORY_APP_EMAIL);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Mở ứng dụng email ở cửa sổ khác
-                                startActivity(intent);
-                            }
-                        });
-
-                        // Tạo AlertDialog
-                        AlertDialog alertDialog = builder.create();
-
-                        // Hiển thị AlertDialog
-                        alertDialog.show();
+                // Mở email nếu người dùng bấm vào nút Tiếp tục
+                builder.setPositiveButton("Tiếp tục", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Intent.ACTION_MAIN);
+                        intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // Mở ứng dụng email ở cửa sổ khác
+                        startActivity(intent);
                     }
                 });
+
+                // Tạo AlertDialog
+                AlertDialog alertDialog = builder.create();
+
+                // Hiển thị AlertDialog
+                alertDialog.show();
             }
         });
+    }
+    // Chuc Thien
+    private void putDataPreference() {
+        editor.putString(USER_KEY,etEmail.getText().toString());
+        editor.putString(PASS_KEY,etPassword.getText().toString());
+        editor.putBoolean(LOGIN_KEY,true);
+        editor.apply();
+    }
+    private void checkLogin() {
+        etEmail.setText(sharedPreferences.getString(USER_KEY,""));
+        etPassword.setText(sharedPreferences.getString(PASS_KEY,""));
+        if (sharedPreferences.getBoolean(LOGIN_KEY,false)) {
+            loginUser(etEmail.getText().toString(), etPassword.getText().toString());
+        }
     }
 }

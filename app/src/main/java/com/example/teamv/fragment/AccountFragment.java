@@ -31,6 +31,11 @@ public class AccountFragment extends Fragment {
     private TextView tvFullname, tvEmail, tvDecription;
     private View view;
     private FirebaseAuth firebaseAuth;
+
+    // Chuc Thien
+    private String PREFERENCE_KEY = "LogIn_SharePreferences";
+    private String LOGIN_KEY = "LOGIN";
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

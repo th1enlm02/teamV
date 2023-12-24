@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Tạo bảng"
-        android:textSize="20dp"
+        android:textSize="18dp"
         android:textColor="@color/white"
         android:textStyle="bold"
         android:padding="16dp"
@@ -60,20 +60,25 @@
                 android:id="@+id/tv_board_color"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Phông nền"
+                android:text="Ảnh đại diện"
                 android:textSize="16dp"
                 android:textColor="@color/black"
                 android:textStyle="bold"
                 android:layout_alignParentLeft="true"
                 />
-            <ImageView
-                android:id="@+id/iv_board_color"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/tv_board_color"
-                android:background="@color/white"
                 android:layout_marginStart="20dp"
-                />
+                >
+                <ImageView
+                    android:id="@+id/iv_board_color"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@color/custom_blue"
+                    />
+            </androidx.cardview.widget.CardView>
         </RelativeLayout>
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"

@@ -31,7 +31,7 @@
         android:gravity="center"
         android:text="Nhập thông tin tài khoản"
         android:textColor="@color/white"
-        android:textSize="30dp"
+        android:textSize="28sp"
         android:textStyle="bold" />
 
     <ScrollView
@@ -82,6 +82,7 @@
                     android:background="@drawable/outline"
                     android:inputType="textEmailAddress"
                     android:hint="Email" />
+
                 <EditText
                     android:id="@+id/et_password"
                     android:paddingLeft="10dp"
@@ -155,7 +156,7 @@
                     android:layout_below="@id/btn_register"
                     android:layout_centerHorizontal="true"
                     android:text="Bạn đã có tài khoản?"
-                    android:textSize="15dp"
+                    android:textSize="15sp"
                     />
                 <TextView
                     android:id="@+id/tv_login"
@@ -164,7 +165,7 @@
                     android:layout_below="@id/tv_label_login"
                     android:layout_centerHorizontal="true"
                     android:text="Đăng nhập"
-                    android:textSize="15dp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
                 <ProgressBar
                     android:id="@+id/process_bar_register"

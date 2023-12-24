@@ -40,11 +40,6 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private static final String TAG = "RegisterActivity";
 
-    // key cho thông tin của user
-    private static final String KEY_FULLNAME = "fullname";
-    private static final String KEY_EMAIL = "email";
-    private static final String KEY_PASSWORD = "password";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -193,9 +188,10 @@ public class RegisterActivity extends AppCompatActivity {
 //                                    user.put(KEY_PASSWORD, password);
 
                                     // Khởi tạo thông tin user vừa đăng ký lưu vào database
-                                    User user = new User(fullname, email, password);
+                                    String user_id = firebaseUser.getUid();
+                                    User user = new User(user_id, fullname, email, password);
 
-                                    firestore.collection("User").document(firebaseUser.getUid()).set(user)
+                                    firestore.collection("User").document(user_id).set(user)
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {

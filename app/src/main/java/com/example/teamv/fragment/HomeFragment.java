@@ -25,16 +25,14 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.teamv.activity.StatusList;
+import com.example.teamv.activity.StatusListActivity;
 import com.example.teamv.adapter.ColorPickerAdapter;
 import com.example.teamv.my_interface.ClickBoardItemInterface;
 import com.example.teamv.object.Board;
 import com.example.teamv.R;
 import com.example.teamv.adapter.BoardListAdapter;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -58,12 +56,13 @@ public class HomeFragment extends Fragment {
     private ImageView ivBroadColor;
     private EditText etFindBoard;
     private ProgressBar progressBar;
-    private int selectedColor = R.color.yellow;
+    private int selectedColor = R.color.custom_blue;
     private FirebaseFirestore writeBoardfirestore = FirebaseFirestore.getInstance();
     private FirebaseFirestore readBoardFirestore = FirebaseFirestore.getInstance();
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private String userID = getUserID();
     private CollectionReference boardCollectionReference;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -72,8 +71,8 @@ public class HomeFragment extends Fragment {
         // get view
         findViewByIds(view);
 
-        // set default board
-        boards.add(new Board("Demo", R.drawable.ic_main_logo, getCurrentTime(), userID));
+        // just for displaying
+        boards.add(new Board(formatBoardId(getCurrentTime()), "Demo", R.drawable.ic_main_logo, getCurrentTime(), userID));
 
         // get my board data
         readMyBoardData();
@@ -90,10 +89,6 @@ public class HomeFragment extends Fragment {
         });
         // Inflate the layout for this fragment
         return view;
-    }
-    private void setDefaultBoard () {
-        Board defaultBoard = new Board("Công việc cần làm", R.drawable.ic_main_logo, getCurrentTime(), userID);
-        writeBoardDataToFireStore(defaultBoard);
     }
     private void setBoardListAdapter(View view){
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
@@ -149,7 +144,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Lấy thông tin của board được nhập vào
-                Board writeBoard = new Board(etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
+                Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
 
                 writeBoardDataToFireStore(writeBoard);
                 Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
@@ -193,7 +188,7 @@ public class HomeFragment extends Fragment {
 
                             for (DocumentSnapshot documentSnapshot : list) {
                                 Board readBoard = documentSnapshot.toObject(Board.class);
-                                if (documentSnapshot.getId().equals(formatBoardId(readBoard.getCreated_at()))) {
+                                if (documentSnapshot.getId().equals(readBoard.getBoard_id())) {
                                     boards.add(readBoard);
                                 }
                             }
@@ -210,7 +205,8 @@ public class HomeFragment extends Fragment {
     }
     private void readAllBoardDataFromFirestore() {
         boardCollectionReference = readBoardFirestore.collection("Board");
-        boardCollectionReference.get()
+        boardCollectionReference
+                .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -234,17 +230,28 @@ public class HomeFragment extends Fragment {
     }
     public void openDiaLogColor()
     {
-        Dialog dialog = new Dialog(getContext());
+        final Dialog dialog = new Dialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.layout_dialog_color_picker);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+        window.getAttributes().windowAnimations = R.style.DialogAnimation;
+
+        dialog.setCancelable(true);
+
         GridView gridView = (GridView) dialog.findViewById(R.id.gridview_color_picker);
         int[] colors = {
-                R.color.black, R.color.blue, R.color.red, R.color.green, R.color.yellow,
-                R.color.purple, R.color.orange, R.color.pink, R.color.brown, R.color.cyan,
-                R.color.teal, R.color.light_blue, R.color.gray, R.color.gold, R.color.silver,
-                R.color.lavender, R.color.turquoise, R.color.mint, R.color.salmon, R.color.coral,
-                R.color.violet, R.color.indigo, R.color.magenta, R.color.lime
+            R.color.custom_blue, R.color.custom_green, R.color.custom_orange, R.color.custom_red, R.color.custom_yellow,
+                R.color.custom_purple, R.color.custom_pink, R.color.custom_cyan, R.color.custom_lime, R.color.custom_silver
         };
-        ColorPickerAdapter adapter = new ColorPickerAdapter(getContext(),colors);
+        ColorPickerAdapter adapter = new ColorPickerAdapter(getContext(), colors);
         gridView.setAdapter(adapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -261,7 +268,7 @@ public class HomeFragment extends Fragment {
     }
     // Xử lý click vào board item
     private void onClickBoardItemGoToStatusList(Board board){
-        Intent intent = new Intent(getContext(), StatusList.class);
+        Intent intent = new Intent(getContext(), StatusListActivity.class);
         Bundle bundle = new Bundle();
         bundle.putSerializable("object_board", board);
         intent.putExtras(bundle);
