@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.teamv.R;
 import com.example.teamv.my_interface.ClickCardItemInterface;
 import com.example.teamv.object.Card;
-import com.example.teamv.object.Task;
+import com.example.teamv.object.ToDoListTask;
 
 import java.util.List;
 
@@ -41,8 +41,12 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
         if (card == null)
             return;
 
-        holder.ivCardAvt.setImageResource(card.getResource_id());
+        if (card.getResource_id() > 0) {
+            holder.ivCardAvt.setImageResource(card.getResource_id());
+            holder.ivCardAvt.setVisibility(View.VISIBLE);
+        }
         holder.tvCardName.setText(card.getName());
+        holder.tvCardCreatedAt.setText(card.getCreated_at());
         switch (card.getStatus()) {
             case "Unscheduled":
                 holder.ivStatus.setImageResource(R.drawable.ic_unscheduled);
@@ -57,9 +61,11 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
             case "Completed":
                 holder.ivStatus.setImageResource(R.drawable.ic_completed);
 
-                holder.tvDeadline.setVisibility(View.VISIBLE);
-                holder.tvDeadline.setText("Deadline: " + card.getDeadline_at());
-                holder.tvDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
+                if (!card.getDeadline_at().equals("")) {
+                    holder.tvDeadline.setVisibility(View.VISIBLE);
+                    holder.tvDeadline.setText("Deadline: " + card.getDeadline_at());
+                    holder.tvDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
+                }
                 break;
             case "Overdue":
                 holder.ivStatus.setImageResource(R.drawable.ic_overdue);
@@ -70,11 +76,16 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
                 break;
         }
 
-        List<Task> tasks = card.getTo_do_list();
-        int numberOfTask = tasks.size(), numberOfCheckedTask = getNumberOfCheckedTask(tasks);
+        List<ToDoListTask> toDoListTasks = card.getTo_do_list();
+        int numberOfTask = toDoListTasks.size(), numberOfCheckedTask = getNumberOfCheckedTask(toDoListTasks);
         if (numberOfTask != 0) {
             holder.llToDoList.setVisibility(View.VISIBLE);
             holder.tvToDoList.setText(String.valueOf(numberOfCheckedTask) + "/" + String.valueOf(numberOfTask));
+            if (numberOfCheckedTask != numberOfTask) {
+                holder.llToDoList.setBackgroundResource(R.drawable.bg_corner_in_process);
+            } else {
+                holder.llToDoList.setBackgroundResource(R.drawable.bg_corner_completed);
+            }
         }
 
         if (card.isIs_pinned() == true) {
@@ -88,10 +99,10 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
             }
         });
     }
-    public int getNumberOfCheckedTask (List<Task> tasks) {
+    public int getNumberOfCheckedTask (List<ToDoListTask> toDoListTasks) {
         int numberOfCheckedTask = 0;
-        for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).isIs_checked() == true)
+        for (int i = 0; i < toDoListTasks.size(); i++) {
+            if (toDoListTasks.get(i).isIs_checked() == true)
                 numberOfCheckedTask++;
         }
         return numberOfCheckedTask;
@@ -107,7 +118,7 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
 
     public class CardListViewHolder extends RecyclerView.ViewHolder {
         private ImageView ivCardAvt, ivStatus, ivPin;
-        private TextView tvCardName, tvDeadline, tvToDoList;
+        private TextView tvCardName, tvDeadline, tvToDoList, tvCardCreatedAt;
         private LinearLayout llToDoList;
         private CardView layoutCardItem;
         public CardListViewHolder(@NonNull View itemView) {
@@ -121,6 +132,7 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
             tvCardName = itemView.findViewById(R.id.tv_card_name);
             tvDeadline = itemView.findViewById(R.id.tv_deadline);
             tvToDoList = itemView.findViewById(R.id.tv_to_do_list);
+            tvCardCreatedAt = itemView.findViewById(R.id.tv_card_created_at);
 
             llToDoList = itemView.findViewById(R.id.ll_to_do_list);
 

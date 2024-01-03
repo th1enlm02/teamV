@@ -34,7 +34,7 @@
             android:gravity="left"
             />
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_board_name"
+            android:id="@+id/et_board_name_to_add"
             style="@style/ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
                 android:id="@+id/tv_board_color"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ảnh đại diện"
+                android:text="Phông nền"
                 android:textSize="16dp"
                 android:textColor="@color/black"
                 android:textStyle="bold"
@@ -73,7 +73,7 @@
                 android:layout_marginStart="20dp"
                 >
                 <ImageView
-                    android:id="@+id/iv_board_color"
+                    android:id="@+id/iv_board_color_to_add"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:src="@color/custom_blue"
@@ -93,25 +93,25 @@
             android:padding="5dp"
             >
             <Button
-                android:id="@+id/btn_cancel"
+                android:id="@+id/btn_cancel_add_board_dialog"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/outline"
                 android:text="Huỷ bỏ"
-                android:textColor="@color/blue5"
+                android:textColor="@color/blue4"
                 android:textSize="16dp"
                 android:textStyle="bold"
                 app:backgroundTint="@null"
                 />
             <Button
-                android:id="@+id/btn_ok"
+                android:id="@+id/btn_ok_add_board_dialog"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:backgroundTint="@color/blue5"
-                android:text="OK"
+                android:backgroundTint="@color/blue4"
+                android:text="Tạo"
                 android:textColor="@color/white"
                 android:textSize="16dp"
                 android:textStyle="bold"

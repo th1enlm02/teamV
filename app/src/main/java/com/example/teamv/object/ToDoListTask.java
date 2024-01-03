@@ -1,10 +1,13 @@
 package com.example.teamv.object;
 
-public class Task {
+import java.io.Serializable;
+
+public class ToDoListTask implements Serializable {
     private String name;
     private boolean is_checked;
+    ToDoListTask() {};
 
-    public Task(String name, boolean is_checked) {
+    public ToDoListTask(String name, boolean is_checked) {
         this.name = name;
         this.is_checked = is_checked;
     }

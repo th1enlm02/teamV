@@ -52,12 +52,12 @@ public class HomeFragment extends Fragment {
     private RecyclerView rvBoardList;
     private ImageView ivAddBoard;
     private BoardListAdapter boardListAdapter;
-    private List <Board> boards = new ArrayList<>();;
+    private List <Board> boards = new ArrayList<>();
     private ImageView ivBroadColor;
     private EditText etFindBoard;
     private ProgressBar progressBar;
     private int selectedColor = R.color.custom_blue;
-    private FirebaseFirestore writeBoardfirestore = FirebaseFirestore.getInstance();
+    private FirebaseFirestore writeBoardFirestore = FirebaseFirestore.getInstance();
     private FirebaseFirestore readBoardFirestore = FirebaseFirestore.getInstance();
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private String userID = getUserID();
@@ -72,7 +72,7 @@ public class HomeFragment extends Fragment {
         findViewByIds(view);
 
         // just for displaying
-        boards.add(new Board(formatBoardId(getCurrentTime()), "Demo", R.drawable.ic_main_logo, getCurrentTime(), userID));
+        boards.add(new Board(formatBoardId(getCurrentTime()), "Demo", R.color.custom_blue, getCurrentTime(), userID));
 
         // get my board data
         readMyBoardData();
@@ -120,10 +120,10 @@ public class HomeFragment extends Fragment {
 
         dialog.setCancelable(true);
 
-        EditText etBoardName = dialog.findViewById(R.id.et_board_name);
-        Button btnCancel = dialog.findViewById(R.id.btn_cancel);
-        Button btnOK = dialog.findViewById(R.id.btn_ok);
-        ivBroadColor = dialog.findViewById(R.id.iv_board_color);
+        EditText etBoardName = dialog.findViewById(R.id.et_board_name_to_add);
+        Button btnCancel = dialog.findViewById(R.id.btn_cancel_add_board_dialog);
+        Button btnOK = dialog.findViewById(R.id.btn_ok_add_board_dialog);
+        ivBroadColor = dialog.findViewById(R.id.iv_board_color_to_add);
 
         // Hàm thêm color picker
         ivBroadColor.setOnClickListener(new View.OnClickListener() {
@@ -154,8 +154,8 @@ public class HomeFragment extends Fragment {
         dialog.show();
     }
     private void writeBoardDataToFireStore (Board writeBoard) {
-        String boardID = formatBoardId(getCurrentTime());
-        DocumentReference documentReference = writeBoardfirestore.collection("Board").document(boardID);
+        String boardID = writeBoard.getBoard_id();
+        DocumentReference documentReference = writeBoardFirestore.collection("Board").document(boardID);
 
         progressBar.setVisibility(View.VISIBLE);
         documentReference.set(writeBoard)
@@ -179,7 +179,9 @@ public class HomeFragment extends Fragment {
     }
     private void readMyBoardData() {
         boardCollectionReference = readBoardFirestore.collection("Board");
-        boardCollectionReference.get()
+        boardCollectionReference
+                .whereEqualTo("user_id", userID)
+                .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -188,9 +190,7 @@ public class HomeFragment extends Fragment {
 
                             for (DocumentSnapshot documentSnapshot : list) {
                                 Board readBoard = documentSnapshot.toObject(Board.class);
-                                if (documentSnapshot.getId().equals(readBoard.getBoard_id())) {
-                                    boards.add(readBoard);
-                                }
+                                boards.add(readBoard);
                             }
                             boardListAdapter.notifyDataSetChanged();
                         }
@@ -240,13 +240,15 @@ public class HomeFragment extends Fragment {
         window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         WindowManager.LayoutParams windowAttributes = window.getAttributes();
-        windowAttributes.gravity = Gravity.CENTER;
+        windowAttributes.gravity = Gravity.BOTTOM;
         window.setAttributes(windowAttributes);
         window.getAttributes().windowAnimations = R.style.DialogAnimation;
 
         dialog.setCancelable(true);
 
         GridView gridView = (GridView) dialog.findViewById(R.id.gridview_color_picker);
+        ImageView ivClose = (ImageView) dialog.findViewById(R.id.iv_close_color_picker);
+
         int[] colors = {
             R.color.custom_blue, R.color.custom_green, R.color.custom_orange, R.color.custom_red, R.color.custom_yellow,
                 R.color.custom_purple, R.color.custom_pink, R.color.custom_cyan, R.color.custom_lime, R.color.custom_silver
@@ -262,6 +264,12 @@ public class HomeFragment extends Fragment {
                 ivBroadColor.setImageResource(selectedColor);
 
                 dialog.cancel();
+            }
+        });
+        ivClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
             }
         });
         dialog.show();
@@ -298,7 +306,7 @@ public class HomeFragment extends Fragment {
     private String getCurrentTime() {
         Date currentTime = new Date();
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss a", Locale.getDefault());
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
         return new String(simpleDateFormat.format(currentTime));
     }
 }

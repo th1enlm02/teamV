@@ -89,6 +89,14 @@
                 android:textColor="@color/black"
                 android:textSize="15dp"
                 android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_logout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                android:layout_below="@id/tv_edit_profile"
+                />
         </RelativeLayout>
     </LinearLayout>
 </ScrollView>

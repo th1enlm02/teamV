@@ -118,6 +118,7 @@ public class LoginActivity extends AppCompatActivity {
                     etPassword.requestFocus();
                 } else {
                     progressBar.setVisibility(View.VISIBLE);
+                    putDataPreference();
                     loginUser(email, password);
                 }
             }

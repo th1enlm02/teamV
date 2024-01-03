@@ -1,5 +1,9 @@
 package com.example.teamv.fragment;
 
+import static android.content.Context.MODE_PRIVATE;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -10,11 +14,13 @@ import androidx.fragment.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.teamv.R;
+import com.example.teamv.activity.LoginActivity;
 import com.example.teamv.object.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -30,6 +36,8 @@ public class AccountFragment extends Fragment {
     private ImageView ivAvatar, ivEditProfile;
     private TextView tvFullname, tvEmail, tvDecription;
     private View view;
+    private Button btnLogout;
+    // Firebase
     private FirebaseAuth firebaseAuth;
 
     // Chuc Thien
@@ -104,6 +112,16 @@ public class AccountFragment extends Fragment {
                 fragmentTransaction.commit();
             }
         });
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sharedPreferences = getActivity().getSharedPreferences(PREFERENCE_KEY, MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(LOGIN_KEY, false); // Cập nhật giá trị LOGIN_KEY thành false
+                editor.apply(); // Lưu thay đổi vào SharedPreferences
+                startActivity(new Intent(getActivity(), LoginActivity.class));
+            }
+        });
         // Inflate the layout for this fragment
         return view;
     }
@@ -113,5 +131,6 @@ public class AccountFragment extends Fragment {
         tvEmail = (TextView) view.findViewById(R.id.tv_email);
         ivEditProfile = (ImageView) view.findViewById(R.id.iv_edit_profile);
         tvDecription = (TextView) view.findViewById(R.id.tv_decription);
+        btnLogout = (Button) view.findViewById(R.id.btn_logout);
     }
 }

@@ -159,7 +159,7 @@ public class RegisterActivity extends AppCompatActivity {
 //                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
 //                                    databaseReference.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
 //                                        @Override
-//                                        public void onComplete(@NonNull Task<Void> task) {
+//                                        public void onComplete(@NonNull ToDoListTask<Void> task) {
 //                                            if (task.isSuccessful()) {
 //                                                // Gửi mã xác nhận
 //                                                firebaseUser.sendEmailVerification();

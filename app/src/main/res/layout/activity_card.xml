@@ -13,7 +13,7 @@
         android:orientation="vertical"
         >
         <LinearLayout
-            android:id="@+id/ll_top_bar"
+            android:id="@+id/ll_card_top_bar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
@@ -22,13 +22,8 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="#30000000"
                 >
-                <View
-                    android:id="@+id/view_transparent_bar"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#30000000"
-                    />
                 <ImageView
                     android:id="@+id/iv_back_to_status_list"
                     android:layout_width="30dp"
@@ -60,74 +55,93 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                    <ImageView
-                        android:id="@+id/iv_card_background"
+                    <RelativeLayout
+                        android:id="@+id/rl_back_ground"
                         android:layout_width="match_parent"
-                        android:layout_height="140dp"
-                        android:src="@color/in_process"
-                        />
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/cv_change_card_background"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignBottom="@id/iv_card_background"
-                        android:layout_marginStart="10dp"
-                        android:layout_marginBottom="10dp"
-                        app:cardCornerRadius="5dp"
-                        >
-                        <RelativeLayout
+                        android:layout_height="wrap_content">
+                        <ImageView
+                            android:id="@+id/iv_card_background"
+                            android:layout_width="match_parent"
+                            android:layout_height="140sp"
+                            android:visibility="gone"
+                            />
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cv_set_card_background"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="5dp"
+                            android:layout_alignBottom="@id/iv_card_background"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginTop="10dp"
+                            app:cardCornerRadius="5dp"
                             >
-                            <ImageView
-                                android:id="@+id/iv_bg"
-                                android:layout_width="25dp"
-                                android:layout_height="25dp"
-                                android:src="@drawable/ic_background"
-                                android:layout_centerVertical="true"
-                                />
-                            <TextView
-                                android:id="@+id/tv_bg"
+                            <RelativeLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Ảnh bìa"
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/black"
-                                android:layout_toRightOf="@id/iv_bg"
-                                android:layout_centerVertical="true"
-                                android:paddingStart="5dp"
-                                android:paddingEnd="5dp"
-                                />
-                        </RelativeLayout>
-                    </androidx.cardview.widget.CardView>
+                                android:padding="5dp"
+                                >
+                                <ImageView
+                                    android:id="@+id/iv_bg"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:src="@drawable/ic_background"
+                                    android:layout_centerVertical="true"
+                                    />
+                                <TextView
+                                    android:id="@+id/tv_bg"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Ảnh bìa"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/black"
+                                    android:layout_toRightOf="@id/iv_bg"
+                                    android:layout_centerVertical="true"
+                                    android:paddingStart="5dp"
+                                    android:paddingEnd="5dp"
+                                    />
+                            </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
+                    </RelativeLayout>
                     <RelativeLayout
                         android:id="@+id/rl_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/iv_card_background"
+                        android:layout_below="@id/rl_back_ground"
                         android:background="@drawable/divider_top_bottom"
                         >
                         <TextView
                             android:id="@+id/tv_card_name"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Card's name"
-                            android:textSize="18dp"
+                            android:text="Card's nameCard's name"
+                            android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/black"
                             android:paddingTop="10dp"
                             android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
                             android:paddingBottom="5dp"
+                            android:layout_alignParentStart="true"
+                            android:layout_toLeftOf="@id/iv_is_checked_complete"
+                            android:layout_alignParentTop="true"
+                            android:layout_marginEnd="10dp"
+                            />
+
+                        <ImageView
+                            android:id="@+id/iv_is_checked_complete"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentEnd="true"
+                            android:src="@drawable/ic_checkbox"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="10dp"
                             />
                         <TextView
-                            android:id="@+id/tv_in_board"
+                            android:id="@+id/tv_card_created_at"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_below="@id/tv_card_name"
-                            android:text="Trong bảng: Board's name"
+                            android:text="dd/MM/yyyy HH:mm:ss a"
                             android:textSize="13sp"
                             android:textColor="@color/black"
                             android:paddingBottom="10dp"
@@ -177,10 +191,9 @@
                         android:layout_below="@id/rl_description"
                         android:background="@drawable/divider_top_bottom"
                         android:orientation="vertical"
-                        android:weightSum="3"
+                        android:weightSum="2"
                         >
                         <TextView
-                            android:id="@+id/tv_card_timeline"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -197,48 +210,35 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:orientation="horizontal"
                             >
-                            <ImageView
-                                android:layout_width="25dp"
-                                android:layout_height="25dp"
-                                android:src="@drawable/ic_clock"
-                                />
-                            <TextView
-                                android:id="@+id/tv_start_date"
-                                android:layout_width="wrap_content"
+                            <RelativeLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="Ngày bắt đầu..."
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/black"
-                                android:layout_gravity="center_vertical"
-                                android:layout_marginStart="10dp"
-                                />
-                        </LinearLayout>
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:paddingStart="10dp"
-                            >
-                            <ImageView
-                                android:id="@+id/iv_is_checked_complete"
-                                android:layout_width="25dp"
-                                android:layout_height="25dp"
-                                android:src="@drawable/ic_checkbox"
-                                android:visibility="invisible"
-                                />
-                            <TextView
-                                android:id="@+id/tv_end_date"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:hint="Ngày hết hạn..."
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/black"
-                                android:layout_gravity="center_vertical"
-                                android:layout_marginStart="10dp"
-                                />
+                                android:layout_marginBottom="10dp"
+                                >
+                                <ImageView
+                                    android:id="@+id/iv_deadline"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:src="@drawable/ic_deadline"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_centerVertical="true"
+                                    />
+                                <TextView
+                                    android:id="@+id/tv_deadline"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Ngày hết hạn..."
+                                    android:textSize="13sp"
+                                    android:textColor="@color/black"
+                                    android:layout_centerVertical="true"
+                                    android:layout_marginStart="10dp"
+                                    android:layout_toRightOf="@id/iv_deadline"
+                                    android:padding="3dp"
+                                    />
+                            </RelativeLayout>
                         </LinearLayout>
                     </LinearLayout>
                     <LinearLayout
@@ -255,9 +255,10 @@
                             >
                             <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/divider_top_bottom"
+                                >
                                 <TextView
-                                    android:id="@+id/tv_card_to_do_list"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="To-do list"
@@ -269,7 +270,7 @@
                                     android:paddingBottom="5dp"
                                     />
                                 <ImageView
-                                    android:id="@+id/iv_card_to_do_list_option"
+                                    android:id="@+id/iv_to_do_list_option"
                                     android:layout_width="25dp"
                                     android:layout_height="25dp"
                                     android:layout_centerVertical="true"
@@ -280,12 +281,44 @@
                             </RelativeLayout>
                         </LinearLayout>
                         <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rcv_card_to_do_list"
+                            android:id="@+id/rcv_to_do_list"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:paddingStart="10dp"
                             android:paddingEnd="10dp"
                             />
+                        <RelativeLayout
+                            android:id="@+id/rl_to_do_list_add_task"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="10dp"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_dashed_line"
+                            android:visibility="gone"
+                            >
+                            <EditText
+                                android:id="@+id/et_to_do_list_add_task"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Nhập việc cần làm..."
+                                android:textSize="13sp"
+                                android:textColor="@color/black"
+                                android:padding="10dp"
+                                android:layout_centerVertical="true"
+                                android:layout_toLeftOf="@id/iv_to_do_list_add_task_save_change"
+                                android:background="#00FFFFFF"
+                                />
+                            <ImageView
+                                android:id="@+id/iv_to_do_list_add_task_save_change"
+                                android:layout_width="25dp"
+                                android:layout_height="25dp"
+                                android:src="@drawable/ic_checked"
+                                android:layout_alignParentRight="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginEnd="5dp"
+                                />
+                        </RelativeLayout>
                         <androidx.cardview.widget.CardView
                             android:id="@+id/cv_add_to_do_list"
                             android:layout_width="match_parent"
@@ -331,12 +364,12 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:background="@drawable/divider_top_bottom"
                             >
                             <RelativeLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content">
                                 <TextView
-                                    android:id="@+id/tv_card_attached_file"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Các tệp đính kèm"
@@ -347,24 +380,48 @@
                                     android:paddingStart="10dp"
                                     android:paddingBottom="5dp"
                                     />
-                                <ImageView
-                                    android:id="@+id/iv_card_attached_file_option"
-                                    android:layout_width="25dp"
-                                    android:layout_height="25dp"
-                                    android:layout_centerVertical="true"
-                                    android:layout_alignParentEnd="true"
-                                    android:layout_marginEnd="10dp"
-                                    android:src="@drawable/ic_option_black"
-                                    />
                             </RelativeLayout>
                         </LinearLayout>
                         <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rcv_card_attached_file_list"
+                            android:id="@+id/rcv_attached_file_list"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:paddingStart="10dp"
                             android:paddingEnd="10dp"
                             />
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cv_add_attached_file"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="10dp"
+                            app:cardCornerRadius="10dp"
+                            >
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="5dp"
+                                >
+                                <ImageView
+                                    android:id="@+id/iv_add_attached_file"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:src="@drawable/ic_add_black"
+                                    android:layout_centerVertical="true"
+                                    />
+                                <TextView
+                                    android:id="@+id/tv_add_attached_file"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Thêm tệp đính kèm..."
+                                    android:textSize="13sp"
+                                    android:textColor="@color/black"
+                                    android:layout_toRightOf="@id/iv_add_attached_file"
+                                    android:layout_centerVertical="true"
+                                    android:paddingStart="5dp"
+                                    android:paddingEnd="5dp"
+                                    />
+                            </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
                     </LinearLayout>
                 </RelativeLayout>
             </ScrollView>

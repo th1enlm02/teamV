@@ -4,15 +4,14 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Card implements Serializable {
-    private String id;
+    private String card_id;
     private String board_id;
     private String name;
     private int resource_id;
     private String description;
-    private String start_at;
     private String deadline_at;
-    private List<Task> to_do_list;
-    private List<String> attached_file_list;
+    private List<ToDoListTask> to_do_list;
+    private List<AttachedFile> attached_file_list;
     private String created_at;
     private boolean is_checked_complete;
     private boolean is_pinned;
@@ -20,13 +19,12 @@ public class Card implements Serializable {
 
     public Card() {};
 
-    public Card(String id, String board_id, String name, int resource_id, String description, String start_at, String deadline_at, List<Task> to_do_list, List<String> attached_file_list, String created_at, boolean is_checked_complete, boolean is_pinned, String status) {
-        this.id = id;
+    public Card(String card_id, String board_id, String name, int resource_id, String description, String deadline_at, List<ToDoListTask> to_do_list, List<AttachedFile> attached_file_list, String created_at, boolean is_checked_complete, boolean is_pinned, String status) {
+        this.card_id = card_id;
         this.board_id = board_id;
         this.name = name;
         this.resource_id = resource_id;
         this.description = description;
-        this.start_at = start_at;
         this.deadline_at = deadline_at;
         this.to_do_list = to_do_list;
         this.attached_file_list = attached_file_list;
@@ -34,6 +32,14 @@ public class Card implements Serializable {
         this.is_checked_complete = is_checked_complete;
         this.is_pinned = is_pinned;
         this.status = status;
+    }
+
+    public String getCard_id() {
+        return card_id;
+    }
+
+    public void setCard_id(String card_id) {
+        this.card_id = card_id;
     }
 
     public boolean isIs_checked_complete() {
@@ -50,22 +56,6 @@ public class Card implements Serializable {
 
     public void setIs_pinned(boolean is_pinned) {
         this.is_pinned = is_pinned;
-    }
-
-    public String getStart_at() {
-        return start_at;
-    }
-
-    public void setStart_at(String start_at) {
-        this.start_at = start_at;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getBoard_id() {
@@ -100,19 +90,19 @@ public class Card implements Serializable {
         this.description = description;
     }
 
-    public List<Task> getTo_do_list() {
+    public List<ToDoListTask> getTo_do_list() {
         return to_do_list;
     }
 
-    public void setTo_do_list(List<Task> to_do_list) {
+    public void setTo_do_list(List<ToDoListTask> to_do_list) {
         this.to_do_list = to_do_list;
     }
 
-    public List<String> getAttached_file_list() {
+    public List<AttachedFile> getAttached_file_list() {
         return attached_file_list;
     }
 
-    public void setAttached_file_list(List<String> attached_file_list) {
+    public void setAttached_file_list(List<AttachedFile> attached_file_list) {
         this.attached_file_list = attached_file_list;
     }
 

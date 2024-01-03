@@ -8,12 +8,13 @@
     android:layout_marginStart="10dp"
     android:layout_marginEnd="10dp"
     android:layout_marginBottom="5dp"
-    app:cardCornerRadius="20dp">
+    app:cardCornerRadius="10dp">
 
     <RelativeLayout
         android:id="@+id/rl_item_board"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="3dp"
         >
 
         <de.hdodenhof.circleimageview.CircleImageView
@@ -54,7 +55,7 @@
                 android:id="@+id/tv_board_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="dd/mm/yy HH:mm a"
+                android:text="dd/mm/yy HH:mm"
                 android:textSize="13dp"
                 android:textStyle="italic"
                 android:layout_weight="1"
