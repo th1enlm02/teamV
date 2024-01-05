@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -67,12 +68,23 @@ public class ToDoListAdapter extends RecyclerView.Adapter<ToDoListAdapter.ToDoLi
     public class ToDoListViewHolder extends RecyclerView.ViewHolder {
         ImageView ivToDoListCheckbox;
         TextView tvToDoListTaskName;
+        RelativeLayout rlToDoListItem;
 
         public ToDoListViewHolder(@NonNull View itemView) {
             super(itemView);
 
             ivToDoListCheckbox = itemView.findViewById(R.id.iv_to_do_list_checkbox);
             tvToDoListTaskName = itemView.findViewById(R.id.tv_to_do_list_task_name);
+
+            rlToDoListItem = itemView.findViewById(R.id.rl_to_do_list_item);
         }
+    }
+    public void removeItem(int index) {
+        toDoListTasks.remove(index);
+        notifyItemRemoved(index);
+    }
+    public void undoItem(ToDoListTask toDoListTask, int index) {
+        toDoListTasks.add(index, toDoListTask);
+        notifyItemInserted(index);
     }
 }

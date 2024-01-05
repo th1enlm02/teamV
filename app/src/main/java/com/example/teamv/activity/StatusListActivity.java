@@ -38,8 +38,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.checkerframework.checker.units.qual.C;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -61,8 +65,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     private SwipeRefreshLayout statusSwipeRefreshLayout;
     // Firestore database
     private FirebaseFirestore writeCardFirestore = FirebaseFirestore.getInstance();
-    private FirebaseFirestore readCardFirestore = FirebaseFirestore.getInstance();
-    private CollectionReference cardCollectionReference = readCardFirestore.collection("Card");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,11 +82,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         // set layout
         tvTitle.setText(board.getName());
         llStatusListTopBar.setBackgroundTintList(getResources().getColorStateList(board.getResource_id()));
-
-        // test
-//        cards.add(new Card("1", "board_id_1", "Card 1", R.color.custom_blue, "Description 1", "2023-12-20", "2023-12-30", new ArrayList<>(), new ArrayList<>(), "2023-12-15", false, true, "In process"));
-//        cards.add(new Card("2", "board_id_1", "Card 2", R.color.custom_blue, "Description 2", "2023-12-25", "2023-12-31", new ArrayList<>(), new ArrayList<>(), "2023-12-16", false, false, "Unscheduled"));
-//        cards.add(new Card("3", "board_id_2", "Card 3", R.color.custom_blue, "Description 3", "2023-12-28", "2023-12-31", new ArrayList<>(), new ArrayList<>(), "2023-12-17", true, false, "Overdue"));
 
         // read my card
 //        readMyCardData();
@@ -112,8 +109,42 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     protected void onResume() {
         super.onResume();
         readMyCardData();
+        tvTitle.setText(String.valueOf(listOverdue.size()));
     }
+    private void checkIfCardIsOverdue(List<Card> listInProcess) {
+        Date currentDate = new Date();
+        for (Card card: listInProcess) {
+            try {
+                Date deadline = convertStringToDate(card.getDeadline_at());
 
+                if (deadline != null && deadline.before(currentDate)) {
+                    FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+                    CollectionReference reference = firestore.collection("Card");
+
+                    reference.document(card.getCard_id())
+                            .update("status", "Overdue")
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Log.i("SuccessUpdateStatus", "Updated card status successfully");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.e("UpdateStatusFailed", "Updated card status failed!");
+                                }
+                            });
+            }
+            } catch (ParseException e) {
+                Log.e("ParseException", e.getMessage());
+            }
+        }
+    }
+    public static Date convertStringToDate(String dateString) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+        return dateFormat.parse(dateString);
+    }
     private void readMyCardData() {
         resetStatus();
         readUnscheduledCard();
@@ -122,7 +153,9 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         readOverdueCard();
     }
     private void readUnscheduledCard() {
-        cardCollectionReference
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
+        collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "Unscheduled")
                 .get()
@@ -142,15 +175,18 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                         }
                     }
                 })
+                // Thêm xử lý sự kiện khi đang lấy dữ liệu
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e("Unscheduled error", e.getMessage());
+                        Log.e("ReadUnscheduledFailed", e.getMessage());
                     }
                 });
     }
     private void readInProcessCard() {
-        cardCollectionReference
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
+        collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "In process")
                 .get()
@@ -165,6 +201,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                             }
                             tvInProcessNumber.setText("(" + listInProcess.size() + ")");
                             if (listInProcess.size() != 0) {
+                                checkIfCardIsOverdue(listInProcess);
                                 inProcessListAdapter.notifyDataSetChanged();
                             }
                         }
@@ -173,12 +210,14 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e("In process error", e.getMessage());
+                        Log.e("ReadInProcessFailed", e.getMessage());
                     }
                 });
     }
     private void readCompletedCard() {
-        cardCollectionReference
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
+        collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "Completed")
                 .get()
@@ -200,12 +239,14 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e("Completed error", e.getMessage());
+                        Log.e("ReadCompletedFailed", e.getMessage());
                     }
                 });
     }
     private void readOverdueCard() {
-        cardCollectionReference
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
+        collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "Overdue")
                 .get()
@@ -227,10 +268,11 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e("Overdue error", e.getMessage());
+                        Log.e("ReadOverdueFailed", e.getMessage());
                     }
                 });
     }
+
     private void openAddCardDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -244,13 +286,12 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         WindowManager.LayoutParams windowAttributes = window.getAttributes();
         windowAttributes.gravity = Gravity.CENTER;
         window.setAttributes(windowAttributes);
-        window.getAttributes().windowAnimations = R.style.DialogAnimation;
 
         dialog.setCancelable(true);
 
         EditText etCardName = (EditText) dialog.findViewById(R.id.et_card_name_to_add);
-        Button btnCancel = (Button) dialog.findViewById(R.id.btn_cancel_add_card_dialog);
-        Button btnOK = (Button) dialog.findViewById(R.id.btn_ok_add_card_dialog);
+        TextView btnCancel = (TextView) dialog.findViewById(R.id.btn_cancel_add_card_dialog);
+        TextView btnOK = (TextView) dialog.findViewById(R.id.btn_ok_add_card_dialog);
 
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -261,11 +302,13 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Card writeCard = new Card(formatCardId(getCurrentTime()), boardID, etCardName.getText().toString(),
-                        0, "", "", new ArrayList<>(), new ArrayList<>(), getCurrentTime(), false, false,
-                        getString(R.string.Unscheduled));
+                if (!etCardName.getText().equals("")) {
+                    Card writeCard = new Card(formatCardId(getCurrentTime()), boardID, etCardName.getText().toString(),
+                            0, "", "", new ArrayList<>(), new ArrayList<>(), getCurrentTime(), false, false,
+                            getString(R.string.Unscheduled));
 
-                writeCardDataToFireStoreWithOnlyCardName(writeCard);
+                    writeCardDataToFireStoreWithOnlyCardName(writeCard);
+                }
                 dialog.dismiss();
             }
         });
@@ -298,7 +341,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(StatusListActivity.this, "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("WriteCardFailed", e.getMessage());
                     }
                 });
     }
@@ -345,7 +388,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         });
         rcvOverdue.setAdapter(overdueListAdapter);
-
+    }
         // init adapters
 //        if (unscheduledListAdapter == null) {
 //            unscheduledListAdapter = new CardListAdapter(listUnscheduled, new ClickCardItemInterface() {
@@ -386,7 +429,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
 //            });
 //            rcvOverdue.setAdapter(overdueListAdapter);
 //        }
-    }
     private void onClickCardItemGoToCardActivity(Card card) {
         Intent intent = new Intent(this, CardActivity.class);
         Bundle bundle = new Bundle();

@@ -5,8 +5,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
@@ -20,6 +22,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -43,12 +46,15 @@ import com.example.teamv.R;
 import com.example.teamv.adapter.AttachedFileAdapter;
 import com.example.teamv.adapter.ColorPickerAdapter;
 import com.example.teamv.adapter.ToDoListAdapter;
+import com.example.teamv.my_interface.ToDoListItemTouchHelperInterface;
 import com.example.teamv.object.AttachedFile;
 import com.example.teamv.object.Card;
 import com.example.teamv.object.ToDoListTask;
+import com.example.teamv.recyclerview_class.ToDoListItemTouchHelper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -67,7 +73,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class CardActivity extends AppCompatActivity {
+public class CardActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, ToDoListItemTouchHelperInterface {
     private Card myCard;
     private int selectedBackgroundColor = 0;
     private Calendar selectedDeadline;
@@ -88,6 +94,7 @@ public class CardActivity extends AppCompatActivity {
             etToDoListAddTask;
     private RecyclerView rcvToDoList,
                 rcvAttachedFileList;
+    private SwipeRefreshLayout cardSwipeRefreshLayout;
     // List
     private List<ToDoListTask> toDoList = new ArrayList<>();
     private List<AttachedFile> attachedFileList = new ArrayList<>();
@@ -107,6 +114,9 @@ public class CardActivity extends AppCompatActivity {
 
         // set views
         findViewByIds();
+
+        // set refresh listener
+        cardSwipeRefreshLayout.setOnRefreshListener(CardActivity.this);
 
         // get card data from status list
         myCard = getCardInforFromStatusListActivity();
@@ -384,7 +394,7 @@ public class CardActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e("UpdateCard", e.getMessage());
+                        Log.e("UpdateCardFailed", e.getMessage());
                     }
                 });
     }
@@ -407,11 +417,10 @@ public class CardActivity extends AppCompatActivity {
         boolean isChecked = card.isIs_checked_complete();
         String status = card.getStatus();
         String deadline = card.getDeadline_at();
-        tvDeadline.setText(deadline);
         if (isChecked) {
-            ivIsCheckedComplete.setVisibility(View.VISIBLE);
             ivIsCheckedComplete.setImageResource(R.drawable.ic_checked);
             if (!deadline.equals("")) {
+                tvDeadline.setText("Hết hạn: " + deadline);
                 switch (status) {
                     case "Completed":
                         tvDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
@@ -423,10 +432,15 @@ public class CardActivity extends AppCompatActivity {
             }
         } else {
             if (!status.equals("Unscheduled")) {
-                ivIsCheckedComplete.setVisibility(View.VISIBLE);
+                tvDeadline.setText("Hết hạn: " + deadline);
                 switch (status) {
                     case "In process":
-                        tvDeadline.setBackgroundResource(R.drawable.bg_corner_in_process);
+                        if (calculateDeadlineDifference(convertStringToCalendar(deadline)) > 0) {
+                            tvDeadline.setBackgroundResource(R.drawable.bg_corner_in_process);
+                        } else {
+                            tvDeadline.setBackgroundResource(R.drawable.bg_corner_overdue);
+                            card.setStatus("Overdue");
+                        }
                         break;
                     case "Completed":
                         tvDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
@@ -458,6 +472,36 @@ public class CardActivity extends AppCompatActivity {
         rcvToDoList.addItemDecoration(itemDecoration);
         toDoListAdapter = new ToDoListAdapter(toDoList);
         rcvToDoList.setAdapter(toDoListAdapter);
+
+        // item touch helper
+        ItemTouchHelper.SimpleCallback simpleCallback = new ToDoListItemTouchHelper(0, ItemTouchHelper.LEFT, this);
+        new ItemTouchHelper(simpleCallback).attachToRecyclerView(rcvToDoList);
+    }
+    // swipe to delete to do list task
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof ToDoListAdapter.ToDoListViewHolder) {
+            String toDoListTaskNameDelete = toDoList.get(viewHolder.getAdapterPosition()).getName();
+
+            final ToDoListTask toDoListTaskDelete = toDoList.get(viewHolder.getAdapterPosition());
+            final int indexToDoListTaskDelete = viewHolder.getAdapterPosition();
+
+            // remove item
+            toDoListAdapter.removeItem(indexToDoListTaskDelete);
+
+            Snackbar snackbar = Snackbar.make(rcvToDoList, "Đã xoá '" + toDoListTaskNameDelete + "' khỏi danh sách!", Snackbar.LENGTH_LONG);
+            snackbar.setAction("Hoàn tác", new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    toDoListAdapter.undoItem(toDoListTaskDelete, indexToDoListTaskDelete);
+                    if (indexToDoListTaskDelete == 0 || indexToDoListTaskDelete == toDoList.size() - 1) {
+                        rcvToDoList.scrollToPosition(indexToDoListTaskDelete);
+                    }
+                }
+            });
+            snackbar.setActionTextColor(Color.WHITE);
+            snackbar.show();
+        }
     }
     private void setAttachedFileList() {
         rcvAttachedFileList.setLayoutManager(new LinearLayoutManager(CardActivity.this));
@@ -491,14 +535,27 @@ public class CardActivity extends AppCompatActivity {
                         String deadline = formatSelectedDate(selectedDeadline);
                         tvDeadline.setText("Hết hạn: " + deadline);
                         ivIsCheckedComplete.setVisibility(View.VISIBLE);
-                        if (calculateDeadlineDifference(selectedDeadline) > 0) {
-                            tvDeadline.setBackgroundResource(R.drawable.bg_corner_in_process);
 
-                            card.setStatus("In process");
+                        if (card.isIs_checked_complete()) {
+                            if (calculateDeadlineDifference(selectedDeadline) > 0) {
+                                tvDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
+
+                                card.setStatus("Completed");
+                            } else {
+                                tvDeadline.setBackgroundResource(R.drawable.bg_corner_overdue);
+
+                                card.setStatus("Overdue");
+                            }
                         } else {
-                            tvDeadline.setBackgroundResource(R.drawable.bg_corner_overdue);
+                            if (calculateDeadlineDifference(selectedDeadline) > 0) {
+                                tvDeadline.setBackgroundResource(R.drawable.bg_corner_in_process);
 
-                            card.setStatus("Overdue");
+                                card.setStatus("In process");
+                            } else {
+                                tvDeadline.setBackgroundResource(R.drawable.bg_corner_overdue);
+
+                                card.setStatus("Overdue");
+                            }
                         }
                         card.setDeadline_at(deadline);
                     }
@@ -509,7 +566,7 @@ public class CardActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
     public static Calendar convertStringToCalendar(String dateString) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
 
         try {
@@ -525,7 +582,7 @@ public class CardActivity extends AppCompatActivity {
         if (selectedDate == null)
             return "";
         // format date
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
         String formatSelectedDate = dateFormat.format(selectedDate.getTime());
         return formatSelectedDate;
     }
@@ -617,5 +674,24 @@ public class CardActivity extends AppCompatActivity {
         rlToDoListAddTask = (RelativeLayout) findViewById(R.id.rl_to_do_list_add_task);
         etToDoListAddTask = (EditText) findViewById(R.id.et_to_do_list_add_task);
         ivToDoListAddTaskSaveChange = (ImageView) findViewById(R.id.iv_to_do_list_add_task_save_change);
+
+        cardSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.card_swipeRefreshLayout);
+    }
+    @Override
+    public void onRefresh() {
+        setCardUI(myCard);
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                cardSwipeRefreshLayout.setRefreshing(false);
+            }
+        }, 500);
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        updateMyCardData(myCard);
+        finish();
     }
 }

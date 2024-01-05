@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -143,11 +144,13 @@ public class HomeFragment extends Fragment {
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lấy thông tin của board được nhập vào
-                Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
+                if (!etBoardName.getText().equals("")) {
+                    // Lấy thông tin của board được nhập vào
+                    Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
 
-                writeBoardDataToFireStore(writeBoard);
-                Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+                    writeBoardDataToFireStore(writeBoard);
+                    Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+                }
                 dialog.dismiss();
             }
         });
@@ -172,7 +175,7 @@ public class HomeFragment extends Fragment {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("WriteBoardFailed", e.getMessage());
                         progressBar.setVisibility(View.GONE);
                     }
                 });
@@ -199,35 +202,35 @@ public class HomeFragment extends Fragment {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "ReadBoardData" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
-    private void readAllBoardDataFromFirestore() {
-        boardCollectionReference = readBoardFirestore.collection("Board");
-        boardCollectionReference
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        if (!queryDocumentSnapshots.isEmpty()) {
-                            List<DocumentSnapshot> list = queryDocumentSnapshots.getDocuments();
-
-                            for (DocumentSnapshot documentSnapshot : list) {
-                                Board readBoard = documentSnapshot.toObject(Board.class);
-                                boards.add(readBoard);
-                            }
-                            boardListAdapter.notifyDataSetChanged();
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
+//    private void readAllBoardDataFromFirestore() {
+//        boardCollectionReference = readBoardFirestore.collection("Board");
+//        boardCollectionReference
+//                .get()
+//                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+//                        if (!queryDocumentSnapshots.isEmpty()) {
+//                            List<DocumentSnapshot> list = queryDocumentSnapshots.getDocuments();
+//
+//                            for (DocumentSnapshot documentSnapshot : list) {
+//                                Board readBoard = documentSnapshot.toObject(Board.class);
+//                                boards.add(readBoard);
+//                            }
+//                            boardListAdapter.notifyDataSetChanged();
+//                        }
+//                    }
+//                })
+//                .addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//    }
     public void openDiaLogColor()
     {
         final Dialog dialog = new Dialog(getContext());
