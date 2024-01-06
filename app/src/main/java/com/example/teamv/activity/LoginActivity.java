@@ -13,6 +13,7 @@ import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +30,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText etEmail, etPassword;
@@ -45,6 +48,8 @@ public class LoginActivity extends AppCompatActivity {
     private String LOGIN_KEY = "LOGIN";
     private Boolean isLogin; // Biến để kiểm tra đã đăng nhập hay chưa
 
+    // toan
+    private TextView forgetpass;
     private static final String TAG = "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +66,43 @@ public class LoginActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
         editor = sharedPreferences.edit();
         checkLogin();
+        // Toan
+        forgetpass=(TextView)findViewById(R.id.tv_forgetpass);
+        forgetpass.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                builder.setTitle("Reset Password");
 
+                // Inflate layout
+                View view = LayoutInflater.from(LoginActivity.this).inflate(R.layout.dialog_forgotpass, null);
+                builder.setView(view);
+
+                final EditText Emailresetpass = view.findViewById(R.id.etEmail);
+
+                builder.setNegativeButton("Reset", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        FirebaseAuth.getInstance().sendPasswordResetEmail(Emailresetpass.getText().toString())
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            // Email đã được gửi đi, thông báo cho người dùng.
+                                            Toast.makeText(LoginActivity.this, "Email đã được gửi để đặt lại mật khẩu.", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            // Có lỗi xảy ra, thông báo cho người dùng.
+                                            Toast.makeText(LoginActivity.this, "Có lỗi xảy ra. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+                    }
+                });
+
+                builder.create().show();
+
+            }
+        });
         // Che và hiển thị mật khẩu
         ImageView imShowHidePassword = findViewById(R.id.im_show_hide_password);
         imShowHidePassword.setImageResource(R.drawable.ic_hide_password);
@@ -136,6 +177,9 @@ public class LoginActivity extends AppCompatActivity {
 
                     // Kiểm tra email đã được xác nhận chưa trước khi cho phép đăng nhập
                     if (firebaseUser.isEmailVerified()) {
+
+                        updatePassonFirestore(email,password);
+
                         Toast.makeText(LoginActivity.this, "Đăng nhập thành công!",
                                 Toast.LENGTH_LONG).show();
                         // Chuyển sang màn hình Home
@@ -167,7 +211,29 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 progressBar.setVisibility(View.GONE);
             }
+            private void updatePassonFirestore(String email,String password){
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                db.collection("User")
+                        .whereEqualTo("email", email)
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
 
+                                    db.collection("User")  // Thay thế "yourCollectionName" bằng tên collection của bạn
+                                            .document(document.getId())     // Sử dụng document ID đã tìm thấy
+                                            .update("password", password)  // Cập nhật trường password
+                                            .addOnSuccessListener(aVoid -> {
+                                            })
+                                            .addOnFailureListener(e -> {
+                                            });
+                                }
+                            } else {
+                                // Đã có lỗi xảy ra
+                            }
+                        });
+
+            }
             private void showAlertDialog() {
                 // Thiết lập Alert Builder
                 AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);

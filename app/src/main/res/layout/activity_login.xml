@@ -86,10 +86,19 @@
         android:textColor="@color/white"
         android:textSize="20dp"/>
     <TextView
-        android:id="@+id/tv_label_register"
+        android:id="@+id/tv_forgetpass"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_login"
+        android:layout_centerHorizontal="true"
+        android:text="Quên mật khẩu?"
+        android:textSize="15dp"
+        />
+    <TextView
+        android:id="@+id/tv_label_register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_forgetpass"
         android:layout_centerHorizontal="true"
         android:text="Bạn chưa có tài khoản?"
         android:textSize="15dp"
