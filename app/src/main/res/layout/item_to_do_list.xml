@@ -21,8 +21,8 @@
             />
         <ImageView
             android:id="@+id/iv_icon_delete_task"
-            android:layout_width="30sp"
-            android:layout_height="30sp"
+            android:layout_width="20sp"
+            android:layout_height="20sp"
             android:src="@drawable/ic_delete"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"

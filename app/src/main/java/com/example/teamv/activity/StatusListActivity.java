@@ -2,6 +2,8 @@ package com.example.teamv.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -28,11 +30,15 @@ import android.widget.Toast;
 import com.example.teamv.R;
 import com.example.teamv.adapter.CardListAdapter;
 import com.example.teamv.my_interface.CardDataCallback;
+import com.example.teamv.my_interface.CardItemTouchHelperInterface;
 import com.example.teamv.my_interface.ClickCardItemInterface;
 import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
+import com.example.teamv.object.ToDoListTask;
+import com.example.teamv.recyclerview_class.CardListItemTouchHelper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -49,7 +55,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class StatusListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, CardDataCallback {
+public class StatusListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, CardDataCallback, CardItemTouchHelperInterface {
     private String boardID;
     // status lists
     private List<Card> listUnscheduled = new ArrayList<>();
@@ -391,6 +397,14 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         rcvInProcess.setLayoutManager(new LinearLayoutManager(StatusListActivity.this));
         rcvCompleted.setLayoutManager(new LinearLayoutManager(StatusListActivity.this));
         rcvOverdue.setLayoutManager(new LinearLayoutManager(StatusListActivity.this));
+        RecyclerView.ItemDecoration unscheduledItemDecoration = new DividerItemDecoration(StatusListActivity.this, DividerItemDecoration.VERTICAL);
+        rcvUnscheduled.addItemDecoration(unscheduledItemDecoration);
+        RecyclerView.ItemDecoration inProcessItemDecoration = new DividerItemDecoration(StatusListActivity.this, DividerItemDecoration.VERTICAL);
+        rcvInProcess.addItemDecoration(inProcessItemDecoration);
+        RecyclerView.ItemDecoration completedItemDecoration = new DividerItemDecoration(StatusListActivity.this, DividerItemDecoration.VERTICAL);
+        rcvCompleted.addItemDecoration(completedItemDecoration);
+        RecyclerView.ItemDecoration overdueItemDecoration = new DividerItemDecoration(StatusListActivity.this, DividerItemDecoration.VERTICAL);
+        rcvOverdue.addItemDecoration(overdueItemDecoration);
 
         unscheduledListAdapter = new CardListAdapter(listUnscheduled, new ClickCardItemInterface() {
             @Override
@@ -399,6 +413,9 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         });
         rcvUnscheduled.setAdapter(unscheduledListAdapter);
+        ItemTouchHelper.SimpleCallback unscheduledSimpleCallback = new CardListItemTouchHelper(0, ItemTouchHelper.LEFT, this, "Unscheduled");
+        new ItemTouchHelper(unscheduledSimpleCallback).attachToRecyclerView(rcvUnscheduled);
+
         inProcessListAdapter = new CardListAdapter(listInProcess, new ClickCardItemInterface() {
             @Override
             public void OnClickCardItem(Card card) {
@@ -406,6 +423,9 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         });
         rcvInProcess.setAdapter(inProcessListAdapter);
+        ItemTouchHelper.SimpleCallback inProcessSimpleCallback = new CardListItemTouchHelper(0, ItemTouchHelper.LEFT, this, "In process");
+        new ItemTouchHelper(inProcessSimpleCallback).attachToRecyclerView(rcvInProcess);
+
         completedListAdapter = new CardListAdapter(listCompleted, new ClickCardItemInterface() {
             @Override
             public void OnClickCardItem(Card card) {
@@ -413,6 +433,9 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         });
         rcvCompleted.setAdapter(completedListAdapter);
+        ItemTouchHelper.SimpleCallback completedSimpleCallback = new CardListItemTouchHelper(0, ItemTouchHelper.LEFT, this, "Completed");
+        new ItemTouchHelper(completedSimpleCallback).attachToRecyclerView(rcvCompleted);
+
         overdueListAdapter = new CardListAdapter(listOverdue, new ClickCardItemInterface() {
             @Override
             public void OnClickCardItem(Card card) {
@@ -420,6 +443,104 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         });
         rcvOverdue.setAdapter(overdueListAdapter);
+        ItemTouchHelper.SimpleCallback overdueSimpleCallback = new CardListItemTouchHelper(0, ItemTouchHelper.LEFT, this, "Overdue");
+        new ItemTouchHelper(overdueSimpleCallback).attachToRecyclerView(rcvOverdue);
+    }
+
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, String identifier) {
+        if (viewHolder instanceof CardListAdapter.CardListViewHolder) {
+            // Xử lý việc vuốt item trong danh sách tương ứng với identifier
+            if (identifier.equals("Unscheduled")) {
+                // Xoá item trong listUnscheduled tại vị trí position
+                String cardNameDelete = listUnscheduled.get(viewHolder.getAdapterPosition()).getName();
+
+                final Card cardDelete = listUnscheduled.get(viewHolder.getAdapterPosition());
+                final int indexCardDelete = viewHolder.getAdapterPosition();
+
+                // remove item
+                unscheduledListAdapter.removeItem(indexCardDelete);
+
+                Snackbar snackbar = Snackbar.make(rcvUnscheduled, "Đã xoá '" + cardNameDelete + "' khỏi danh sách!", Snackbar.LENGTH_LONG);
+                snackbar.setAction("Hoàn tác", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        unscheduledListAdapter.undoItem(cardDelete, indexCardDelete);
+                        if (indexCardDelete == 0 || indexCardDelete == listUnscheduled.size() - 1) {
+                            rcvUnscheduled.scrollToPosition(indexCardDelete);
+                        }
+                    }
+                });
+                snackbar.setActionTextColor(Color.WHITE);
+                snackbar.show();
+            } else if (identifier.equals("In process")) {
+                // Xoá item trong listInProcess tại vị trí position
+                String cardNameDelete = listInProcess.get(viewHolder.getAdapterPosition()).getName();
+
+                final Card cardDelete = listInProcess.get(viewHolder.getAdapterPosition());
+                final int indexCardDelete = viewHolder.getAdapterPosition();
+
+                // remove item
+                inProcessListAdapter.removeItem(indexCardDelete);
+
+                Snackbar snackbar = Snackbar.make(rcvInProcess, "Đã xoá '" + cardNameDelete + "' khỏi danh sách!", Snackbar.LENGTH_LONG);
+                snackbar.setAction("Hoàn tác", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        inProcessListAdapter.undoItem(cardDelete, indexCardDelete);
+                        if (indexCardDelete == 0 || indexCardDelete == listInProcess.size() - 1) {
+                            rcvInProcess.scrollToPosition(indexCardDelete);
+                        }
+                    }
+                });
+                snackbar.setActionTextColor(Color.WHITE);
+                snackbar.show();
+            } else if (identifier.equals("Completed")) {
+                // Xoá item trong listCompleted tại vị trí position
+                String cardNameDelete = listCompleted.get(viewHolder.getAdapterPosition()).getName();
+
+                final Card cardDelete = listCompleted.get(viewHolder.getAdapterPosition());
+                final int indexCardDelete = viewHolder.getAdapterPosition();
+
+                // remove item
+                completedListAdapter.removeItem(indexCardDelete);
+
+                Snackbar snackbar = Snackbar.make(rcvCompleted, "Đã xoá '" + cardNameDelete + "' khỏi danh sách!", Snackbar.LENGTH_LONG);
+                snackbar.setAction("Hoàn tác", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        completedListAdapter.undoItem(cardDelete, indexCardDelete);
+                        if (indexCardDelete == 0 || indexCardDelete == listCompleted.size() - 1) {
+                            rcvCompleted.scrollToPosition(indexCardDelete);
+                        }
+                    }
+                });
+                snackbar.setActionTextColor(Color.WHITE);
+                snackbar.show();
+            } else if (identifier.equals("Overdue")) {
+                // Xoá item trong listOverdue tại vị trí position
+                String cardNameDelete = listOverdue.get(viewHolder.getAdapterPosition()).getName();
+
+                final Card cardDelete = listOverdue.get(viewHolder.getAdapterPosition());
+                final int indexCardDelete = viewHolder.getAdapterPosition();
+
+                // remove item
+                overdueListAdapter.removeItem(indexCardDelete);
+
+                Snackbar snackbar = Snackbar.make(rcvOverdue, "Đã xoá '" + cardNameDelete + "' khỏi danh sách!", Snackbar.LENGTH_LONG);
+                snackbar.setAction("Hoàn tác", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        overdueListAdapter.undoItem(cardDelete, indexCardDelete);
+                        if (indexCardDelete == 0 || indexCardDelete == listOverdue.size() - 1) {
+                            rcvOverdue.scrollToPosition(indexCardDelete);
+                        }
+                    }
+                });
+                snackbar.setActionTextColor(Color.WHITE);
+                snackbar.show();
+            }
+        }
     }
         // init adapters
 //        if (unscheduledListAdapter == null) {

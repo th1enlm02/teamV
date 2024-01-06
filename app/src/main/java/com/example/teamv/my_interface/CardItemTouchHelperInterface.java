@@ -1,5 +1,7 @@
 package com.example.teamv.my_interface;
 
-public interface CardItemTouchHelperInterface {
+import androidx.recyclerview.widget.RecyclerView;
 
+public interface CardItemTouchHelperInterface {
+    void onSwiped(RecyclerView.ViewHolder viewHolder, String identifier);
 }

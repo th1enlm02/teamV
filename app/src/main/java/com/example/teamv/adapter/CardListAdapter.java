@@ -115,8 +115,14 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
             return cards.size();
         return 0;
     }
-
-
+    public void removeItem(int index) {
+        cards.remove(index);
+        notifyItemRemoved(index);
+    }
+    public void undoItem(Card card, int index) {
+        cards.add(index, card);
+        notifyItemInserted(index);
+    }
     public class CardListViewHolder extends RecyclerView.ViewHolder {
         private ImageView ivCardAvt, ivStatus, ivPin;
         private TextView tvCardName, tvDeadline, tvToDoList, tvCardCreatedAt;
