@@ -236,7 +236,7 @@
                                         android:layout_height="wrap_content"
                                         android:hint="Ngày hết hạn..."
                                         android:textSize="13sp"
-                                        android:textColor="@color/black"
+                                        android:textColor="@color/white"
                                         android:layout_centerVertical="true"
                                         android:layout_marginStart="10dp"
                                         android:layout_toRightOf="@id/iv_deadline"

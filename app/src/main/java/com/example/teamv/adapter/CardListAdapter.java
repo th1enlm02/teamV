@@ -12,6 +12,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.teamv.R;
+import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.my_interface.ClickCardItemInterface;
 import com.example.teamv.object.Card;
 import com.example.teamv.object.ToDoListTask;
@@ -54,25 +55,25 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
             case "In process":
                 holder.ivStatus.setImageResource(R.drawable.ic_in_process);
 
-                holder.tvDeadline.setVisibility(View.VISIBLE);
+                holder.llDeadline.setVisibility(View.VISIBLE);
                 holder.tvDeadline.setText("Deadline: " + card.getDeadline_at());
-                holder.tvDeadline.setBackgroundResource(R.drawable.bg_corner_in_process);
+                holder.llDeadline.setBackgroundResource(R.drawable.bg_corner_in_process);
                 break;
             case "Completed":
                 holder.ivStatus.setImageResource(R.drawable.ic_completed);
 
                 if (!card.getDeadline_at().equals("")) {
-                    holder.tvDeadline.setVisibility(View.VISIBLE);
+                    holder.llDeadline.setVisibility(View.VISIBLE);
                     holder.tvDeadline.setText("Deadline: " + card.getDeadline_at());
-                    holder.tvDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
+                    holder.llDeadline.setBackgroundResource(R.drawable.bg_corner_completed);
                 }
                 break;
             case "Overdue":
                 holder.ivStatus.setImageResource(R.drawable.ic_overdue);
 
-                holder.tvDeadline.setVisibility(View.VISIBLE);
+                holder.llDeadline.setVisibility(View.VISIBLE);
                 holder.tvDeadline.setText("Deadline: " + card.getDeadline_at());
-                holder.tvDeadline.setBackgroundResource(R.drawable.bg_corner_overdue);
+                holder.llDeadline.setBackgroundResource(R.drawable.bg_corner_overdue);
                 break;
         }
 
@@ -119,7 +120,7 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
     public class CardListViewHolder extends RecyclerView.ViewHolder {
         private ImageView ivCardAvt, ivStatus, ivPin;
         private TextView tvCardName, tvDeadline, tvToDoList, tvCardCreatedAt;
-        private LinearLayout llToDoList;
+        private LinearLayout llToDoList, llDeadline;
         private CardView layoutCardItem;
         public CardListViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -137,6 +138,8 @@ public class CardListAdapter extends RecyclerView.Adapter<CardListAdapter.CardLi
             llToDoList = itemView.findViewById(R.id.ll_to_do_list);
 
             layoutCardItem = itemView.findViewById(R.id.layout_card_item);
+
+            llDeadline = itemView.findViewById(R.id.ll_deadline);
         }
     }
 }

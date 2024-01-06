@@ -64,26 +64,42 @@
                 android:layout_weight="1"
                 android:textStyle="italic"
                 />
-            <TextView
-                android:id="@+id/tv_deadline"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/ll_deadline"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="2dp"
-                android:text="dd/mm/yy HH:mm a"
-                android:textSize="10dp"
-                android:textColor="@color/white"
+                android:orientation="horizontal"
                 android:background="@drawable/bg_corner_in_process"
-                android:layout_weight="1"
-                android:layout_marginTop="3dp"
-                android:layout_marginBottom="3dp"
                 android:visibility="gone"
-                />
+                >
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:src="@drawable/ic_deadline_clock"
+                    android:layout_gravity="center_vertical"
+                    />
+                <TextView
+                    android:id="@+id/tv_deadline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="2dp"
+                    android:text="dd/mm/yy HH:mm a"
+                    android:textSize="10dp"
+                    android:textColor="@color/white"
+                    android:layout_weight="1"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginStart="3dp"
+                    />
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/ll_to_do_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:background="@drawable/bg_corner_completed"
+                android:layout_marginTop="2dp"
                 android:visibility="gone"
                 >
                 <ImageView

@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.example.teamv.R;
 import com.example.teamv.adapter.CardListAdapter;
+import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.my_interface.ClickCardItemInterface;
 import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
@@ -48,7 +49,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class StatusListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class StatusListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, CardDataCallback {
     private String boardID;
     // status lists
     private List<Card> listUnscheduled = new ArrayList<>();
@@ -89,6 +90,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         // set card list adapters
         setCardListAdapters();
 
+
+
         // back event
         ivBackToHome.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,6 +107,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 openAddCardDialog();
             }
         });
+
     }
     @Override
     protected void onResume() {
@@ -147,12 +151,12 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     }
     private void readMyCardData() {
         resetStatus();
-        readUnscheduledCard();
-        readInProcessCard();
-        readCompletedCard();
-        readOverdueCard();
+        readUnscheduledCard(this);
+        readInProcessCard(this);
+        readCompletedCard(this);
+        readOverdueCard(this);
     }
-    private void readUnscheduledCard() {
+    private void readUnscheduledCard(CardDataCallback callback) {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         CollectionReference collectionReference = firestore.collection("Card");
         collectionReference
@@ -164,14 +168,13 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             List<DocumentSnapshot> unscheduledList = queryDocumentSnapshots.getDocuments();
+                            List<Card> tempList = new ArrayList<>();
+
                             for (DocumentSnapshot documentSnapshot : unscheduledList) {
                                 Card unscheduledCard = documentSnapshot.toObject(Card.class);
-                                listUnscheduled.add(unscheduledCard);
+                                tempList.add(unscheduledCard);
                             }
-                            tvUnscheduledNumber.setText("(" + listUnscheduled.size() + ")");
-                            if (listUnscheduled.size() != 0) {
-                                unscheduledListAdapter.notifyDataSetChanged();
-                            }
+                            callback.onDataReceived(tempList, "Unscheduled");
                         }
                     }
                 })
@@ -183,7 +186,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     }
                 });
     }
-    private void readInProcessCard() {
+    private void readInProcessCard(CardDataCallback callback) {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         CollectionReference collectionReference = firestore.collection("Card");
         collectionReference
@@ -195,15 +198,13 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             List<DocumentSnapshot> inProcessList = queryDocumentSnapshots.getDocuments();
+                            List<Card> tempList = new ArrayList<>();
+
                             for (DocumentSnapshot documentSnapshot : inProcessList) {
                                 Card inProcessCard = documentSnapshot.toObject(Card.class);
-                                listInProcess.add(inProcessCard);
+                                tempList.add(inProcessCard);
                             }
-                            tvInProcessNumber.setText("(" + listInProcess.size() + ")");
-                            if (listInProcess.size() != 0) {
-                                checkIfCardIsOverdue(listInProcess);
-                                inProcessListAdapter.notifyDataSetChanged();
-                            }
+                            callback.onDataReceived(tempList, "In process");
                         }
                     }
                 })
@@ -214,7 +215,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     }
                 });
     }
-    private void readCompletedCard() {
+    private void readCompletedCard(CardDataCallback callback) {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         CollectionReference collectionReference = firestore.collection("Card");
         collectionReference
@@ -226,13 +227,13 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             List<DocumentSnapshot> completedList = queryDocumentSnapshots.getDocuments();
+                            List<Card> tempList = new ArrayList<>();
+
                             for (DocumentSnapshot documentSnapshot : completedList) {
                                 Card completedCard = documentSnapshot.toObject(Card.class);
-                                listCompleted.add(completedCard);
+                                tempList.add(completedCard);
                             }
-                            tvCompletedNumber.setText("(" + listCompleted.size() + ")");
-                            if (listCompleted.size() != 0)
-                                completedListAdapter.notifyDataSetChanged();
+                            callback.onDataReceived(tempList, "Completed");
                         }
                     }
                 })
@@ -243,7 +244,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     }
                 });
     }
-    private void readOverdueCard() {
+    private void readOverdueCard(CardDataCallback callback) {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         CollectionReference collectionReference = firestore.collection("Card");
         collectionReference
@@ -255,13 +256,13 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             List<DocumentSnapshot> overdueList = queryDocumentSnapshots.getDocuments();
+                            List<Card> tempList = new ArrayList<>();
+
                             for (DocumentSnapshot documentSnapshot : overdueList) {
                                 Card overdueCard = documentSnapshot.toObject(Card.class);
-                                listOverdue.add(overdueCard);
+                                tempList.add(overdueCard);
                             }
-                            tvOverdueNumber.setText("(" + listOverdue.size() + ")");
-                            if (listOverdue.size() != 0)
-                                overdueListAdapter.notifyDataSetChanged();
+                            callback.onDataReceived(tempList, "Overdue");
                         }
                     }
                 })
@@ -273,6 +274,37 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 });
     }
 
+    @Override
+    public void onDataReceived(List<Card> cards, String identifier) {
+        if (identifier.equals("Unscheduled")) {
+            this.listUnscheduled.clear();
+            this.listUnscheduled.addAll(cards);
+            tvUnscheduledNumber.setText("(" + listUnscheduled.size() + ")");
+            if (listUnscheduled.size() != 0) {
+                unscheduledListAdapter.notifyDataSetChanged();
+            }
+        } else if (identifier.equals("In process")) {
+            this.listInProcess.clear();
+            this.listInProcess.addAll(cards);
+            tvInProcessNumber.setText("(" + listInProcess.size() + ")");
+            if (listInProcess.size() != 0) {
+                checkIfCardIsOverdue(listInProcess);
+                inProcessListAdapter.notifyDataSetChanged();
+            }
+        } else if (identifier.equals("Completed")) {
+            this.listCompleted.clear();
+            this.listCompleted.addAll(cards);
+            tvCompletedNumber.setText("(" + listCompleted.size() + ")");
+            if (listCompleted.size() != 0)
+                completedListAdapter.notifyDataSetChanged();
+        } else if (identifier.equals("Overdue")) {
+            this.listOverdue.clear();
+            this.listOverdue.addAll(cards);
+            tvOverdueNumber.setText("(" + listOverdue.size() + ")");
+            if (listOverdue.size() != 0)
+                overdueListAdapter.notifyDataSetChanged();
+        }
+    }
     private void openAddCardDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -491,4 +523,5 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         }, 1000);
     }
+
 }

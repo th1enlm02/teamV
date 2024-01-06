@@ -28,12 +28,15 @@ import android.widget.Toast;
 
 import com.example.teamv.activity.StatusListActivity;
 import com.example.teamv.adapter.ColorPickerAdapter;
+import com.example.teamv.my_interface.BoardDataCallback;
 import com.example.teamv.my_interface.ClickBoardItemInterface;
 import com.example.teamv.object.Board;
 import com.example.teamv.R;
 import com.example.teamv.adapter.BoardListAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -48,7 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements BoardDataCallback {
     private View view;
     private RecyclerView rvBoardList;
     private ImageView ivAddBoard;
@@ -73,13 +76,13 @@ public class HomeFragment extends Fragment {
         findViewByIds(view);
 
         // just for displaying
-        boards.add(new Board(formatBoardId(getCurrentTime()), "Demo", R.color.custom_blue, getCurrentTime(), userID));
-
-        // get my board data
-        readMyBoardData();
+//        boards.add(new Board(formatBoardId(getCurrentTime()), "Demo", R.color.custom_blue, getCurrentTime(), userID));
 
         // set adapter
         setBoardListAdapter(view);
+
+        // get my board data
+        readMyBoardData(this);
 
         // add board
         ivAddBoard.setOnClickListener(new View.OnClickListener() {
@@ -150,8 +153,10 @@ public class HomeFragment extends Fragment {
 
                     writeBoardDataToFireStore(writeBoard);
                     Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                } else {
+                    dialog.dismiss();
                 }
-                dialog.dismiss();
             }
         });
         dialog.show();
@@ -180,7 +185,7 @@ public class HomeFragment extends Fragment {
                     }
                 });
     }
-    private void readMyBoardData() {
+    private void readMyBoardData(BoardDataCallback callback) {
         boardCollectionReference = readBoardFirestore.collection("Board");
         boardCollectionReference
                 .whereEqualTo("user_id", userID)
@@ -190,21 +195,29 @@ public class HomeFragment extends Fragment {
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             List<DocumentSnapshot> list = queryDocumentSnapshots.getDocuments();
+                            List<Board> tempBoards = new ArrayList<>();
 
                             for (DocumentSnapshot documentSnapshot : list) {
                                 Board readBoard = documentSnapshot.toObject(Board.class);
-                                boards.add(readBoard);
+                                tempBoards.add(readBoard);
                             }
-                            boardListAdapter.notifyDataSetChanged();
+                            callback.onDataReceived(tempBoards);
                         }
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getContext(), "ReadBoardData" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("ReadBoardData", e.getMessage());
                     }
                 });
+    }
+    @Override
+    public void onDataReceived(List<Board> boards) {
+        // Đã nhận được dữ liệu từ `onSuccess` và có thể sử dụng nó ở đây
+        this.boards.clear(); // Xóa dữ liệu cũ
+        this.boards.addAll(boards); // Thêm dữ liệu mới
+        boardListAdapter.notifyDataSetChanged(); // Cập nhật RecyclerView
     }
 //    private void readAllBoardDataFromFirestore() {
 //        boardCollectionReference = readBoardFirestore.collection("Board");
