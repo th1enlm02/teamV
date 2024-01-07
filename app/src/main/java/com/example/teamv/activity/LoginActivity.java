@@ -175,6 +175,7 @@ public class LoginActivity extends AppCompatActivity {
     }
     private void loginUser(String email, String password) {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        //Thực hiện hàm đăng nhập của Firebase
         firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
