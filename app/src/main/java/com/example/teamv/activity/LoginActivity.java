@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // toan
     private TextView forgetpass;
-    //Chuthien
+    //Chuthien// Chuc Thien
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private String PREFERENCE_KEY = "LogIn_SharePreferences";
@@ -52,6 +52,8 @@ public class LoginActivity extends AppCompatActivity {
     private Boolean isLogin; // Biến để kiểm tra đã đăng nhập hay chưa
     //
 
+
+    // toan
     private static final String TAG = "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +69,10 @@ public class LoginActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
         editor = sharedPreferences.edit();
 
+
+        // Chuc Thien
+        sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
+        editor = sharedPreferences.edit();
         checkLogin();
         // Toan
         forgetpass=(TextView)findViewById(R.id.tv_forgetpass);
@@ -282,11 +288,11 @@ public class LoginActivity extends AppCompatActivity {
     //Hàm kiểm tra đã login hay chưa
     private void checkLogin() {
         etEmail.setText(sharedPreferences
-                .getString(USER_KEY,""));
+                .getString(USER_KEY, ""));
         etPassword.setText(sharedPreferences
-                .getString(PASS_KEY,""));
-        if (sharedPreferences.getBoolean(LOGIN_KEY,false)) {
-            loginUser(etEmail.getText().toString(), etPassword.getText().toString());
-        }
+                .getString(PASS_KEY, ""));
     }
+
+
+
 }
