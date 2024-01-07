@@ -39,7 +39,10 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private ProgressBar progressBar;
 
-    // Chuc Thien
+
+    // toan
+    private TextView forgetpass;
+    //Chuthien// Chuc Thien
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private String PREFERENCE_KEY = "LogIn_SharePreferences";
@@ -47,9 +50,10 @@ public class LoginActivity extends AppCompatActivity {
     private String PASS_KEY = "PASS";
     private String LOGIN_KEY = "LOGIN";
     private Boolean isLogin; // Biến để kiểm tra đã đăng nhập hay chưa
+    //
+
 
     // toan
-    private TextView forgetpass;
     private static final String TAG = "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +65,10 @@ public class LoginActivity extends AppCompatActivity {
         tvRegister = (TextView) findViewById(R.id.tv_register);
         btnLogin = (Button) findViewById(R.id.btn_login);
         progressBar = (ProgressBar) findViewById(R.id.process_bar_login);
+        // Chuc Thien
+        sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
+        editor = sharedPreferences.edit();
+
 
         // Chuc Thien
         sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
@@ -260,17 +268,31 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
     // Chuc Thien
+    //Hàm đẩy dự liệu đăng nhập vào sharepreference
+//    private void putDataPreference() {
+//        editor.putString(USER_KEY,etEmail.getText()
+//                .toString());
+//        editor.putString(PASS_KEY,etPassword.getText()
+//                .toString());
+//        editor.putBoolean(LOGIN_KEY,true);
+//        editor.apply();
+//    }
     private void putDataPreference() {
-        editor.putString(USER_KEY,etEmail.getText().toString());
-        editor.putString(PASS_KEY,etPassword.getText().toString());
+        editor.putString(USER_KEY,etEmail.getText()
+                .toString());
+        editor.putString(PASS_KEY,etPassword.getText()
+                .toString());
         editor.putBoolean(LOGIN_KEY,true);
         editor.apply();
     }
+    //Hàm kiểm tra đã login hay chưa
     private void checkLogin() {
-        etEmail.setText(sharedPreferences.getString(USER_KEY,""));
-        etPassword.setText(sharedPreferences.getString(PASS_KEY,""));
-        if (sharedPreferences.getBoolean(LOGIN_KEY,false)) {
-            loginUser(etEmail.getText().toString(), etPassword.getText().toString());
-        }
+        etEmail.setText(sharedPreferences
+                .getString(USER_KEY, ""));
+        etPassword.setText(sharedPreferences
+                .getString(PASS_KEY, ""));
     }
+
+
+
 }
