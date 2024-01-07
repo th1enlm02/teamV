@@ -49,14 +49,16 @@ import java.util.concurrent.Executor;
 public class AccountFragment extends Fragment {
     private ImageView ivAvatar, ivEditProfile;
     private TextView tvFullname, tvEmail, tvDecription;
-    private View view;
     private Button btnLogout;
-    // Firebase
-    private FirebaseAuth firebaseAuth;
-
     // Chuc Thien
     private String PREFERENCE_KEY = "LogIn_SharePreferences";
     private String LOGIN_KEY = "LOGIN";
+    private View view;
+
+    // Firebase
+    private FirebaseAuth firebaseAuth;
+
+
     // Toan
     private TextView btnchangepass;
     private String password;
@@ -140,6 +142,8 @@ public class AccountFragment extends Fragment {
                 fragmentTransaction.commit();
             }
         });
+
+        // sự kiện logout
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -276,7 +280,7 @@ public class AccountFragment extends Fragment {
         tvEmail = (TextView) view.findViewById(R.id.tv_email);
         ivEditProfile = (ImageView) view.findViewById(R.id.iv_edit_profile);
         tvDecription = (TextView) view.findViewById(R.id.tv_decription);
-        btnLogout = (Button) view.findViewById(R.id.btn_logout);
         btnchangepass=(TextView) view.findViewById(R.id.btn_change_pass);
+        btnLogout = (Button) view.findViewById(R.id.btn_logout);
     }
 }
