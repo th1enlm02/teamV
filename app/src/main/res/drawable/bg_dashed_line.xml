@@ -1,0 +1,13 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Độ rộng của đường viền -->
+    <!-- Chiều rộng của mỗi đoạn dash -->
+    <!-- Khoảng cách giữa các đoạn dash -->
+    <!-- Bo tròn góc nếu muốn -->
+    <stroke
+        android:width="2dp"
+    android:color="@color/black"
+    android:dashWidth="10dp"
+    android:dashGap="5dp" />
+    <corners android:radius="5dp" />
+</shape>
