@@ -292,6 +292,9 @@ public class LoginActivity extends AppCompatActivity {
                 .getString(USER_KEY, ""));
         etPassword.setText(sharedPreferences
                 .getString(PASS_KEY, ""));
+        if(sharedPreferences.getBoolean(LOGIN_KEY,false))
+            loginUser(etEmail.getText().toString(),etPassword.getText().toString());
+
     }
 
 
