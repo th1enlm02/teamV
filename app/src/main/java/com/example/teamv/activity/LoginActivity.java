@@ -270,14 +270,6 @@ public class LoginActivity extends AppCompatActivity {
     }
     // Chuc Thien
     //Hàm đẩy dự liệu đăng nhập vào sharepreference
-//    private void putDataPreference() {
-//        editor.putString(USER_KEY,etEmail.getText()
-//                .toString());
-//        editor.putString(PASS_KEY,etPassword.getText()
-//                .toString());
-//        editor.putBoolean(LOGIN_KEY,true);
-//        editor.apply();
-//    }
     private void putDataPreference() {
         editor.putString(USER_KEY,etEmail.getText()
                 .toString());

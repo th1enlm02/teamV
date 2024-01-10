@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_pop_up_item_add_tag"
+        android:title="Tạo thẻ mới"
+        android:icon="@drawable/ic_add_tag"/>
+    <item
+        android:id="@+id/menu_pop_up_item_edit_board"
+        android:title="Sửa bảng"
+        android:icon="@drawable/ic_edit"/>
+    <item
+        android:id="@+id/menu_pop_up_item_delete_board"
+        android:title="Xóa bảng"
+        android:icon="@drawable/ic_red_trash"/>
+
+
+</menu>

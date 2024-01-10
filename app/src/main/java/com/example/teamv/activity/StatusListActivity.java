@@ -2,6 +2,8 @@ package com.example.teamv.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,6 +19,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -29,6 +33,7 @@ import android.widget.Toast;
 
 import com.example.teamv.R;
 import com.example.teamv.adapter.CardListAdapter;
+import com.example.teamv.fragment.HomeFragment;
 import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.my_interface.CardItemTouchHelperInterface;
 import com.example.teamv.my_interface.ClickCardItemInterface;
@@ -62,6 +67,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     private List<Card> listInProcess = new ArrayList<>();
     private List<Card> listCompleted = new ArrayList<>();
     private List<Card> listOverdue = new ArrayList<>();
+    //menu popup
+    MenuBuilder menuBuilder;
     // views
     private TextView tvTitle;
     private TextView tvUnscheduledNumber, tvInProcessNumber, tvCompletedNumber, tvOverdueNumber;
@@ -92,6 +99,10 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
 
         // read my card
 //        readMyCardData();
+        //Xử lí cho menu popup
+        menuBuilder = new MenuBuilder(this);
+        MenuInflater menuInflater = new MenuInflater(this);
+        menuInflater.inflate(R.menu.menu_popup_statuslist, menuBuilder);
 
         // set card list adapters
         setCardListAdapters();
@@ -110,7 +121,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         ivAddCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openAddCardDialog();
+                showMenuPopup(v);
+                //openAddCardDialog();
             }
         });
 
@@ -643,6 +655,34 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 statusSwipeRefreshLayout.setRefreshing(false);
             }
         }, 1000);
+    }
+
+
+    public void showMenuPopup(View v) {
+        MenuPopupHelper menuPopupHelper = new MenuPopupHelper(StatusListActivity.this, menuBuilder, v);
+        menuPopupHelper.setForceShowIcon(true);
+        menuBuilder.setCallback(new MenuBuilder.Callback() {
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
+                // Xử lý khi item menu được chọn
+                if(item.getTitle().equals("Tạo thẻ mới"))
+                {
+                    openAddCardDialog();
+                } else if (item.getTitle().equals("Sửa bảng")) {
+                    HomeFragment homeFragment = new HomeFragment();
+
+
+
+                }
+                return true; // Trả về true để đánh dấu rằng xử lý đã được hoàn thành
+            }
+
+            @Override
+            public void onMenuModeChange(@NonNull MenuBuilder menu) {
+
+            }
+        });
+        menuPopupHelper.show();
     }
 
 }
