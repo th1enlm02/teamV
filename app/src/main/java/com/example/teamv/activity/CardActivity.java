@@ -259,6 +259,10 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                     fileFormat = "ms-word";
                 } else if (mimeType.equals("application/vnd.ms-powerpoint") || mimeType.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation")) {
                     fileFormat = "ms-powerpoint";
+                } else if (mimeType.equals("application/vnd.ms-excel") || mimeType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+                    fileFormat = "ms-excel";
+                } else if (mimeType.equals("application/zip")) {
+                    fileFormat = "zip";
                 } else {
                     fileFormat = "others";
                 }
@@ -346,7 +350,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         String boardID = myCard.getBoard_id();
         String userID = getUserIDBySplitingBoardID(boardID);
-        final StorageReference reference = attachedFileStorageReference.child(userID + "/" + boardID + "/attached_files/" + fileFormat + "/" + System.currentTimeMillis() + "." + fileExtension);
+        final StorageReference reference = attachedFileStorageReference.child(userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + System.currentTimeMillis() + "." + fileExtension);
 
         reference.putFile(data)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -355,7 +359,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                         Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
                         while (!uriTask.isComplete());
                         Uri uri = uriTask.getResult();
-                        AttachedFile attachedFile = new AttachedFile(fileName, fileCreatedAt, fileSize, uri.toString());
+                        AttachedFile attachedFile = new AttachedFile(fileName, fileCreatedAt, fileSize, uri.toString(), fileFormat);
                         attachedFileList.add(attachedFile);
                         myCard.setAttached_file_list(attachedFileList);
                         attachedFileAdapter.notifyDataSetChanged();
@@ -451,7 +455,6 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                 }
             }
         }
-
         // to-do list
         toDoList = card.getTo_do_list();
         setToDoList();

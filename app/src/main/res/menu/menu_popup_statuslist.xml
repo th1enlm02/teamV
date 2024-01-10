@@ -11,6 +11,4 @@
         android:id="@+id/menu_pop_up_item_delete_board"
         android:title="Xóa bảng"
         android:icon="@drawable/ic_red_trash"/>
-
-
 </menu>

@@ -7,14 +7,24 @@ public class AttachedFile implements Serializable {
     private String created_at;
     private String size;
     private String url;
+    private String format;
 
     AttachedFile() {};
 
-    public AttachedFile(String name, String created_at, String size, String url) {
+    public AttachedFile(String name, String created_at, String size, String url, String format) {
         this.name = name;
         this.created_at = created_at;
         this.size = size;
         this.url = url;
+        this.format = format;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 
     public String getName() {

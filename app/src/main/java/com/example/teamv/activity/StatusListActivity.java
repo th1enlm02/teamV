@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -37,6 +38,7 @@ import com.example.teamv.fragment.HomeFragment;
 import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.my_interface.CardItemTouchHelperInterface;
 import com.example.teamv.my_interface.ClickCardItemInterface;
+import com.example.teamv.object.AttachedFile;
 import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
 import com.example.teamv.object.ToDoListTask;
@@ -49,6 +51,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import org.checkerframework.checker.units.qual.C;
 
@@ -61,14 +65,15 @@ import java.util.List;
 import java.util.Locale;
 
 public class StatusListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, CardDataCallback, CardItemTouchHelperInterface {
+    private Board myBoard;
     private String boardID;
     // status lists
     private List<Card> listUnscheduled = new ArrayList<>();
     private List<Card> listInProcess = new ArrayList<>();
     private List<Card> listCompleted = new ArrayList<>();
     private List<Card> listOverdue = new ArrayList<>();
-    //menu popup
-    MenuBuilder menuBuilder;
+    // menu popup
+    private MenuBuilder menuBuilder;
     // views
     private TextView tvTitle;
     private TextView tvUnscheduledNumber, tvInProcessNumber, tvCompletedNumber, tvOverdueNumber;
@@ -79,6 +84,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     private SwipeRefreshLayout statusSwipeRefreshLayout;
     // Firestore database
     private FirebaseFirestore writeCardFirestore = FirebaseFirestore.getInstance();
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,15 +96,16 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         statusSwipeRefreshLayout.setOnRefreshListener(this);
 
         // Lấy thông tin board từ main activity
-        Board board = getBoardInfoFromHomeFragment();
-        boardID = board.getBoard_id();
+        myBoard = getBoardInfoFromHomeFragment();
+        boardID = myBoard.getBoard_id();
 
         // set layout
-        tvTitle.setText(board.getName());
-        llStatusListTopBar.setBackgroundTintList(getResources().getColorStateList(board.getResource_id()));
+        tvTitle.setText(myBoard.getName());
+        llStatusListTopBar.setBackgroundTintList(getResources().getColorStateList(myBoard.getResource_id()));
 
         // read my card
 //        readMyCardData();
+
         //Xử lí cho menu popup
         menuBuilder = new MenuBuilder(this);
         MenuInflater menuInflater = new MenuInflater(this);
@@ -106,8 +113,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
 
         // set card list adapters
         setCardListAdapters();
-
-
 
         // back event
         ivBackToHome.setOnClickListener(new View.OnClickListener() {
@@ -131,7 +136,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     protected void onResume() {
         super.onResume();
         readMyCardData();
-        tvTitle.setText(String.valueOf(listOverdue.size()));
     }
     private void checkIfCardIsOverdue(List<Card> listInProcess) {
         Date currentDate = new Date();
@@ -291,20 +295,23 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                     }
                 });
     }
-
+    private void setStatusListNumber() {
+        tvUnscheduledNumber.setText("(" + listUnscheduled.size() + ")");
+        tvInProcessNumber.setText("(" + listInProcess.size() + ")");
+        tvCompletedNumber.setText("(" + listCompleted.size() + ")");
+        tvOverdueNumber.setText("(" + listOverdue.size() + ")");
+    }
     @Override
     public void onDataReceived(List<Card> cards, String identifier) {
         if (identifier.equals("Unscheduled")) {
             this.listUnscheduled.clear();
             this.listUnscheduled.addAll(cards);
-            tvUnscheduledNumber.setText("(" + listUnscheduled.size() + ")");
             if (listUnscheduled.size() != 0) {
                 unscheduledListAdapter.notifyDataSetChanged();
             }
         } else if (identifier.equals("In process")) {
             this.listInProcess.clear();
             this.listInProcess.addAll(cards);
-            tvInProcessNumber.setText("(" + listInProcess.size() + ")");
             if (listInProcess.size() != 0) {
                 checkIfCardIsOverdue(listInProcess);
                 inProcessListAdapter.notifyDataSetChanged();
@@ -312,16 +319,15 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         } else if (identifier.equals("Completed")) {
             this.listCompleted.clear();
             this.listCompleted.addAll(cards);
-            tvCompletedNumber.setText("(" + listCompleted.size() + ")");
             if (listCompleted.size() != 0)
                 completedListAdapter.notifyDataSetChanged();
         } else if (identifier.equals("Overdue")) {
             this.listOverdue.clear();
             this.listOverdue.addAll(cards);
-            tvOverdueNumber.setText("(" + listOverdue.size() + ")");
             if (listOverdue.size() != 0)
                 overdueListAdapter.notifyDataSetChanged();
         }
+        setStatusListNumber();
     }
     private void openAddCardDialog() {
         final Dialog dialog = new Dialog(this);
@@ -458,7 +464,59 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         ItemTouchHelper.SimpleCallback overdueSimpleCallback = new CardListItemTouchHelper(0, ItemTouchHelper.LEFT, this, "Overdue");
         new ItemTouchHelper(overdueSimpleCallback).attachToRecyclerView(rcvOverdue);
     }
+    private void deleteFilesInFolder(String folderPath) {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReference().child(folderPath);
 
+        storageReference.listAll()
+                .addOnSuccessListener(listResult -> {
+                    for (StorageReference item : listResult.getItems()) {
+                        item.delete()
+                                .addOnSuccessListener(taskSnapshot -> {
+                                    // Xoá thành công
+                                    Log.d("FileDelete", "Deleted file: " + item.getName());
+                                })
+                                .addOnFailureListener(exception -> {
+                                    // Xoá thất bại
+                                    Log.e("FileDelete", "Failed to delete file: " + item.getName() + ", Error: " + exception.getMessage());
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Lỗi khi lấy danh sách tệp tin
+                    Log.e("FileList", "Failed to list files in folder: " + folderPath + ", Error: " + e.getMessage());
+                });
+    }
+    private void deleteCardFromStorage(Card card) {
+        List<AttachedFile> attachedFiles = card.getAttached_file_list();
+        String userID = myBoard.getUser_id();
+
+        for (AttachedFile attachedFile : attachedFiles) {
+            String fileFormat = attachedFile.getFormat(); // Lấy định dạng file từ attachedFile hoặc từ nguồn dữ liệu của bạn
+            String folderPath = userID + "/" + boardID + "/" + card.getCard_id() + "/attached_files/" + fileFormat;
+
+            deleteFilesInFolder(folderPath);
+        }
+    }
+    private void deleteCardFromFirestore(Card card) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
+
+        collectionReference.document(card.getCard_id())
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("SuccessfulDelete", "Deleted card from Firestore successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("FailedDelete", e.getMessage());
+                    }
+                });
+    }
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, String identifier) {
         if (viewHolder instanceof CardListAdapter.CardListViewHolder) {
@@ -480,6 +538,18 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                         unscheduledListAdapter.undoItem(cardDelete, indexCardDelete);
                         if (indexCardDelete == 0 || indexCardDelete == listUnscheduled.size() - 1) {
                             rcvUnscheduled.scrollToPosition(indexCardDelete);
+                        }
+                    }
+                });
+                // Thêm hành động khi Snackbar kết thúc
+                snackbar.addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event == DISMISS_EVENT_TIMEOUT || event == DISMISS_EVENT_SWIPE ||
+                                event == DISMISS_EVENT_CONSECUTIVE || event == DISMISS_EVENT_MANUAL) {
+                            deleteCardFromStorage(cardDelete);
+                            deleteCardFromFirestore(cardDelete);
+                            setStatusListNumber();
                         }
                     }
                 });
@@ -554,46 +624,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         }
     }
-        // init adapters
-//        if (unscheduledListAdapter == null) {
-//            unscheduledListAdapter = new CardListAdapter(listUnscheduled, new ClickCardItemInterface() {
-//                @Override
-//                public void OnClickCardItem(Card card) {
-//                    onClickCardItemGoToCardActivity(card);
-//                }
-//            });
-//            rcvUnscheduled.setAdapter(unscheduledListAdapter);
-//        }
-//
-//        if (inProcessListAdapter == null) {
-//            inProcessListAdapter = new CardListAdapter(listInProcess, new ClickCardItemInterface() {
-//                @Override
-//                public void OnClickCardItem(Card card) {
-//                    onClickCardItemGoToCardActivity(card);
-//                }
-//            });
-//            rcvInProcess.setAdapter(inProcessListAdapter);
-//        }
-//
-//        if (completedListAdapter == null) {
-//            completedListAdapter = new CardListAdapter(listCompleted, new ClickCardItemInterface() {
-//                @Override
-//                public void OnClickCardItem(Card card) {
-//                    onClickCardItemGoToCardActivity(card);
-//                }
-//            });
-//            rcvCompleted.setAdapter(completedListAdapter);
-//        }
-//
-//        if (overdueListAdapter == null) {
-//            overdueListAdapter = new CardListAdapter(listOverdue, new ClickCardItemInterface() {
-//                @Override
-//                public void OnClickCardItem(Card card) {
-//                    onClickCardItemGoToCardActivity(card);
-//                }
-//            });
-//            rcvOverdue.setAdapter(overdueListAdapter);
-//        }
     private void onClickCardItemGoToCardActivity(Card card) {
         Intent intent = new Intent(this, CardActivity.class);
         Bundle bundle = new Bundle();
@@ -658,6 +688,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     }
 
 
+    @SuppressLint("RestrictedApi")
     public void showMenuPopup(View v) {
         MenuPopupHelper menuPopupHelper = new MenuPopupHelper(StatusListActivity.this, menuBuilder, v);
         menuPopupHelper.setForceShowIcon(true);
@@ -671,8 +702,6 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                 } else if (item.getTitle().equals("Sửa bảng")) {
                     HomeFragment homeFragment = new HomeFragment();
 
-
-
                 }
                 return true; // Trả về true để đánh dấu rằng xử lý đã được hoàn thành
             }
@@ -684,5 +713,4 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         });
         menuPopupHelper.show();
     }
-
 }
