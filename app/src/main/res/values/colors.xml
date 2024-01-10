@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="yellow">#FFFF00</color>
@@ -13,7 +15,6 @@
     <color name="gray">#BEBEBE</color>
     <color name="light_gray">#D3D3D3</color>
     <color name="medium_gray">#9C9C9C</color>
-
     <!-- References -->
     <color name="custom_blue">#0079bf</color>
     <color name="custom_green">#70b500</color>

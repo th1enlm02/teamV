@@ -274,11 +274,13 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         boardListAdapter.notifyDataSetChanged(); // Cập nhật RecyclerView
     }
 
+    //Color picker
     public void openDiaLogColor()
     {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.layout_dialog_color_picker);
+
 
         Window window = dialog.getWindow();
         if (window == null)
@@ -296,7 +298,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         ImageView ivClose = (ImageView) dialog.findViewById(R.id.iv_close_color_picker);
 
         int[] colors = {
-            R.color.custom_blue, R.color.custom_green, R.color.custom_orange, R.color.custom_red, R.color.custom_yellow,
+                R.color.custom_blue, R.color.custom_green, R.color.custom_orange, R.color.custom_red, R.color.custom_yellow,
                 R.color.custom_purple, R.color.custom_pink, R.color.custom_cyan, R.color.custom_lime, R.color.custom_silver
         };
         ColorPickerAdapter adapter = new ColorPickerAdapter(getContext(), colors);
@@ -320,6 +322,10 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         });
         dialog.show();
     }
+
+
+
+
     // Xử lý click vào board item
     private void onClickBoardItemGoToStatusList(Board board){
         Intent intent = new Intent(getContext(), StatusListActivity.class);
