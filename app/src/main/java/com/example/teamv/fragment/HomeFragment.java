@@ -107,6 +107,60 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         rvBoardList.setAdapter(boardListAdapter);
     }
     // Hàm mở dialog thêm bảng
+//    private void openAddBoardDialog() {
+//        final Dialog dialog = new Dialog(getContext());
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        dialog.setContentView(R.layout.layout_dialog_add_board);
+//
+//        Window window = dialog.getWindow();
+//        if (window == null)
+//            return;
+//        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+//        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+//        windowAttributes.gravity = Gravity.BOTTOM;
+//        window.setAttributes(windowAttributes);
+//        window.getAttributes().windowAnimations = R.style.DialogAnimation;
+//
+//        dialog.setCancelable(true);
+//
+//        EditText etBoardName = dialog.findViewById(R.id.et_board_name_to_add);
+//        Button btnCancel = dialog.findViewById(R.id.btn_cancel_add_board_dialog);
+//        Button btnOK = dialog.findViewById(R.id.btn_ok_add_board_dialog);
+//        ivBroadColor = dialog.findViewById(R.id.iv_board_color_to_add);
+//
+//        // Hàm thêm color picker
+//        ivBroadColor.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                openDiaLogColor();
+//            }
+//        });
+//
+//        btnCancel.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//            }
+//        });
+//        // Xử lý thêm thông tin board vào database
+//        btnOK.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (!etBoardName.getText().equals("")) {
+//                    // Lấy thông tin của board được nhập vào
+//                    Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
+//
+//                    writeBoardDataToFireStore(writeBoard);
+//                    Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+//                    dialog.dismiss();
+//                } else {
+//                    dialog.dismiss();
+//                }
+//            }
+//        });
+//        dialog.show();
+//    }
     private void openAddBoardDialog() {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -219,31 +273,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         this.boards.addAll(boards); // Thêm dữ liệu mới
         boardListAdapter.notifyDataSetChanged(); // Cập nhật RecyclerView
     }
-//    private void readAllBoardDataFromFirestore() {
-//        boardCollectionReference = readBoardFirestore.collection("Board");
-//        boardCollectionReference
-//                .get()
-//                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-//                        if (!queryDocumentSnapshots.isEmpty()) {
-//                            List<DocumentSnapshot> list = queryDocumentSnapshots.getDocuments();
-//
-//                            for (DocumentSnapshot documentSnapshot : list) {
-//                                Board readBoard = documentSnapshot.toObject(Board.class);
-//                                boards.add(readBoard);
-//                            }
-//                            boardListAdapter.notifyDataSetChanged();
-//                        }
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Toast.makeText(getContext(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//    }
+
     public void openDiaLogColor()
     {
         final Dialog dialog = new Dialog(getContext());
