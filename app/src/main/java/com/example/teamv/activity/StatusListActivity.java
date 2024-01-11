@@ -18,6 +18,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuInflater;
@@ -78,7 +79,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
     private TextView tvTitle;
     private TextView tvUnscheduledNumber, tvInProcessNumber, tvCompletedNumber, tvOverdueNumber;
     private RecyclerView rcvUnscheduled, rcvInProcess, rcvCompleted, rcvOverdue;
-    private ImageView ivBackToHome, ivAddCard;
+    private ImageView ivBackToHome, ivCardOption;
     private CardListAdapter unscheduledListAdapter, inProcessListAdapter, completedListAdapter, overdueListAdapter;
     private LinearLayout llStatusListTopBar;
     private SwipeRefreshLayout statusSwipeRefreshLayout;
@@ -123,11 +124,10 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         });
 
         // add card event
-        ivAddCard.setOnClickListener(new View.OnClickListener() {
+        ivCardOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showMenuPopup(v);
-                //openAddCardDialog();
             }
         });
 
@@ -651,7 +651,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         rcvOverdue = (RecyclerView) findViewById(R.id.rcv_overdue);
 
         ivBackToHome = (ImageView) findViewById(R.id.iv_back_to_home);
-        ivAddCard = (ImageView) findViewById(R.id.iv_add_card);
+        ivCardOption = (ImageView) findViewById(R.id.iv_card_option);
 
         statusSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.status_swipeRefreshLayout);
     }
@@ -686,8 +686,109 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             }
         }, 1000);
     }
+    private void openRenameBoardDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_rename_board);
 
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
 
+        dialog.setCancelable(true);
+
+        EditText etRenameBoard = (EditText) dialog.findViewById(R.id.et_rename_board);
+        ImageView ivRenameBoardConfirm = (ImageView) dialog.findViewById(R.id.iv_rename_board_confirm);
+        ivRenameBoardConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!TextUtils.isEmpty(etRenameBoard.getText().toString())) {
+                    myBoard.setName(etRenameBoard.getText().toString());
+
+                    tvTitle.setText(etRenameBoard.getText().toString());
+                    FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+                    CollectionReference collectionReference = firestore.collection("Board");
+
+                    collectionReference.document(boardID)
+                            .update("name", myBoard.getName())
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Log.i("SuccessUpdateBoard", "Updated board successfully");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.e("UpdateBoardFailed", e.getMessage());
+                                }
+                            });
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void openDeleteBoardDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_delete_board);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        TextView tvCancelDeleteBoard = (TextView) dialog.findViewById(R.id.tv_cancel_delete_board_dialog);
+        TextView tvConfirmDeleteBoard = (TextView) dialog.findViewById(R.id.tv_confirm_delete_board_dialog);
+
+        tvCancelDeleteBoard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        tvConfirmDeleteBoard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteMyBoard();
+                dialog.dismiss();
+                onBackPressed();
+                finish();
+            }
+        });
+        dialog.show();
+    }
+    private void deleteMyBoard() {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Board");
+
+        collectionReference.document(boardID)
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("SuccessfulDelete", "Deleted board from Firestore successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("FailedDelete", e.getMessage());
+                    }
+                });
+    }
     @SuppressLint("RestrictedApi")
     public void showMenuPopup(View v) {
         MenuPopupHelper menuPopupHelper = new MenuPopupHelper(StatusListActivity.this, menuBuilder, v);
@@ -695,17 +796,15 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         menuBuilder.setCallback(new MenuBuilder.Callback() {
             @Override
             public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
-                // Xử lý khi item menu được chọn
-                if(item.getTitle().equals("Tạo thẻ mới"))
-                {
+                if (item.getItemId() == R.id.menu_pop_up_item_add_card) {
                     openAddCardDialog();
-                } else if (item.getTitle().equals("Sửa bảng")) {
-                    HomeFragment homeFragment = new HomeFragment();
-
+                } else if (item.getItemId() == R.id.menu_pop_up_item_edit_board) {
+                    openRenameBoardDialog();
+                } else if (item.getItemId() == R.id.menu_pop_up_item_delete_board) {
+                    openDeleteBoardDialog();
                 }
-                return true; // Trả về true để đánh dấu rằng xử lý đã được hoàn thành
+                return true;
             }
-
             @Override
             public void onMenuModeChange(@NonNull MenuBuilder menu) {
 
