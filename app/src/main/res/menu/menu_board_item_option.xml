@@ -2,19 +2,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
     <item
-        android:id="@+id/menu_pop_up_item_add_card"
-        android:title="Tạo thẻ mới"
-        android:icon="@drawable/ic_add_black_24x24"
-        app:showAsAction="always|withText"
-        />
-    <item
-        android:id="@+id/menu_pop_up_item_edit_board"
-        android:title="Sửa tên bảng"
+        android:id="@+id/menu_board_item_option_edit"
+        android:title="Sửa bảng"
         android:icon="@drawable/ic_edit_24x24"
         app:showAsAction="always|withText"
         />
     <item
-        android:id="@+id/menu_pop_up_item_delete_board"
+        android:id="@+id/menu_board_item_option_delete"
         android:title="Xóa bảng"
         android:icon="@drawable/ic_delete_black_24x24"
         app:showAsAction="always|withText"

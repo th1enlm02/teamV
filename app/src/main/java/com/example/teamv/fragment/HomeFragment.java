@@ -1,5 +1,6 @@
 package com.example.teamv.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -7,13 +8,20 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -24,6 +32,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.teamv.activity.StatusListActivity;
@@ -51,7 +60,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class HomeFragment extends Fragment implements BoardDataCallback {
+public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRefreshLayout.OnRefreshListener {
     private View view;
     private RecyclerView rvBoardList;
     private ImageView ivAddBoard;
@@ -59,6 +68,8 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
     private List <Board> boards = new ArrayList<>();
     private ImageView ivBroadColor;
     private EditText etFindBoard;
+    private SwipeRefreshLayout boardSwipeRefreshLayout;
+    private MenuBuilder menuBuilder;
     private ProgressBar progressBar;
     private int selectedColor = R.color.custom_blue;
     private FirebaseFirestore writeBoardFirestore = FirebaseFirestore.getInstance();
@@ -67,6 +78,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
     private String userID = getUserID();
     private CollectionReference boardCollectionReference;
 
+    @SuppressLint("RestrictedApi")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -78,11 +90,19 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         // just for displaying
 //        boards.add(new Board(formatBoardId(getCurrentTime()), "Demo", R.color.custom_blue, getCurrentTime(), userID));
 
+        boardSwipeRefreshLayout.setOnRefreshListener(this);
+
         // set adapter
         setBoardListAdapter(view);
 
+        // board option
+        menuBuilder = new MenuBuilder(this.getContext());
+        MenuInflater menuInflater = new MenuInflater(this.getContext());
+        menuInflater.inflate(R.menu.menu_board_item_option, menuBuilder);
+
+
         // get my board data
-        readMyBoardData(this);
+//        readMyBoardData(this);
 
         // add board
         ivAddBoard.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +114,13 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         // Inflate the layout for this fragment
         return view;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        readMyBoardData(this);
+    }
+
     private void setBoardListAdapter(View view){
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
         rvBoardList.setLayoutManager(layoutManager);
@@ -102,6 +129,10 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
             @Override
             public void OnClickBoardItem(Board board) {
                 onClickBoardItemGoToStatusList(board);
+            }
+            @Override
+            public void onClickBoardItemOption(View v, Board board) {
+                showBoardItemOption(v, board);
             }
         });
         rvBoardList.setAdapter(boardListAdapter);
@@ -201,16 +232,14 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!etBoardName.getText().equals("")) {
+                if (!TextUtils.isEmpty(etBoardName.getText().toString())) {
                     // Lấy thông tin của board được nhập vào
                     Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
 
                     writeBoardDataToFireStore(writeBoard);
-                    Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
-                } else {
-                    dialog.dismiss();
+                    selectedColor = R.color.custom_blue;
                 }
+                dialog.dismiss();
             }
         });
         dialog.show();
@@ -229,6 +258,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
                         boardListAdapter.notifyDataSetChanged();
 
                         progressBar.setVisibility(View.GONE);
+                        Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -240,6 +270,9 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
                 });
     }
     private void readMyBoardData(BoardDataCallback callback) {
+        boards.clear();
+        if (boardListAdapter != null)
+            boardListAdapter.notifyDataSetChanged();
         boardCollectionReference = readBoardFirestore.collection("Board");
         boardCollectionReference
                 .whereEqualTo("user_id", userID)
@@ -333,6 +366,8 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
         ivAddBoard = (ImageView) view.findViewById(R.id.iv_add_board);
         etFindBoard = (EditText) view.findViewById(R.id.et_find_board);
         progressBar = (ProgressBar) view.findViewById(R.id.process_bar_add_board);
+
+        boardSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.board_swipeRefreshLayout);
     }
     // get user id in firebase
     private String getUserID() {
@@ -354,5 +389,173 @@ public class HomeFragment extends Fragment implements BoardDataCallback {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
         return new String(simpleDateFormat.format(currentTime));
+    }
+
+    @Override
+    public void onRefresh() {
+        readMyBoardData(this);
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                boardSwipeRefreshLayout.setRefreshing(false);
+            }
+        }, 1000);
+    }
+    private void openEditBoardDialog(Board board) {
+        final Dialog dialog = new Dialog(getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_add_board);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.BOTTOM;
+        window.setAttributes(windowAttributes);
+        window.getAttributes().windowAnimations = R.style.DialogAnimation;
+
+        dialog.setCancelable(true);
+
+        EditText etBoardName = dialog.findViewById(R.id.et_board_name_to_add);
+        Button btnCancel = dialog.findViewById(R.id.btn_cancel_add_board_dialog);
+        Button btnOK = dialog.findViewById(R.id.btn_ok_add_board_dialog);
+        ivBroadColor = dialog.findViewById(R.id.iv_board_color_to_add);
+
+        selectedColor = board.getResource_id();
+        etBoardName.setText(board.getName());
+        etBoardName.setSelection(etBoardName.getText().length());
+        ivBroadColor.setImageResource(selectedColor);
+
+        // Hàm thêm color picker
+        ivBroadColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openDiaLogColor();
+            }
+        });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        // Xử lý thêm thông tin board vào database
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!TextUtils.isEmpty(etBoardName.getText().toString())) {
+                    board.setResource_id(selectedColor);
+                    board.setName(etBoardName.getText().toString());
+
+                    updateBoardItem(board);
+                    selectedColor = R.color.custom_blue;
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void updateBoardItem(Board board) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Board");
+
+        collectionReference.document(board.getBoard_id())
+                .update("name", board.getName(), "resource_id", board.getResource_id())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("SuccessUpdateBoard", "Updated board successfully");
+                        Toast.makeText(getContext(), "Đã cập nhật bảng!", Toast.LENGTH_SHORT).show();
+                        onRefresh();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("UpdateBoardFailed", e.getMessage());
+                    }
+                });
+    }
+    private void openDeleteBoardDialog(Board board) {
+        final Dialog dialog = new Dialog(this.getContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_delete_board);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        TextView tvCancelDeleteBoard = (TextView) dialog.findViewById(R.id.tv_cancel_delete_board_dialog);
+        TextView tvConfirmDeleteBoard = (TextView) dialog.findViewById(R.id.tv_confirm_delete_board_dialog);
+
+        tvCancelDeleteBoard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        tvConfirmDeleteBoard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteBoardItem(board);
+
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void deleteBoardItem(Board board) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Board");
+
+        collectionReference.document(board.getBoard_id())
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("SuccessfulDelete", "Deleted board from Firestore successfully");
+                        Toast.makeText(getContext(), "Đã xoá bảng!", Toast.LENGTH_SHORT).show();
+                        onRefresh();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("FailedDelete", e.getMessage());
+                    }
+                });
+    }
+    @SuppressLint("RestrictedApi")
+    public void showBoardItemOption(View v, Board board) {
+        MenuPopupHelper menuPopupHelper = new MenuPopupHelper(this.getContext(), menuBuilder, v);
+        menuPopupHelper.setForceShowIcon(true);
+        menuBuilder.setCallback(new MenuBuilder.Callback() {
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
+                if (item.getItemId() == R.id.menu_board_item_option_edit) {
+                    openEditBoardDialog(board);
+                } else if (item.getItemId() == R.id.menu_board_item_option_delete) {
+                    openDeleteBoardDialog(board);
+                }
+                return true;
+            }
+            @Override
+            public void onMenuModeChange(@NonNull MenuBuilder menu) {
+
+            }
+        });
+        menuPopupHelper.show();
     }
 }

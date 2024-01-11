@@ -152,7 +152,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
-                                    Log.i("SuccessUpdateStatus", "Updated card status successfully");
+                                    Log.d("SuccessUpdateStatus", "Updated card status successfully");
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
@@ -358,7 +358,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!etCardName.getText().equals("")) {
+                if (!TextUtils.isEmpty(etCardName.getText().toString())) {
                     Card writeCard = new Card(formatCardId(getCurrentTime()), boardID, etCardName.getText().toString(),
                             0, "", "", new ArrayList<>(), new ArrayList<>(), getCurrentTime(), false, false,
                             getString(R.string.Unscheduled));
@@ -719,7 +719,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
-                                    Log.i("SuccessUpdateBoard", "Updated board successfully");
+                                    Log.d("SuccessUpdateBoard", "Updated board successfully");
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {

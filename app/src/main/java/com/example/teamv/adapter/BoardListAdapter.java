@@ -43,12 +43,17 @@ public class BoardListAdapter extends RecyclerView.Adapter<BoardListAdapter.Boar
         holder.ivAvtBoard.setImageResource(board.getResource_id());
         holder.tvBoardName.setText(board.getName());
         holder.tvBoardDate.setText(board.getCreated_at());
-        holder.ivEditBoard.setImageResource(R.drawable.ic_edit_board);
 
         holder.layoutBoardItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickBoardItemInterface.OnClickBoardItem(board);
+            }
+        });
+        holder.ivEditBoard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickBoardItemInterface.onClickBoardItemOption(v, board);
             }
         });
     }
