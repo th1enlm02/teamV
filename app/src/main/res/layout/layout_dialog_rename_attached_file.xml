@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sửa tên bảng"
+        android:text="Sửa tên tệp"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/black"
@@ -26,18 +26,18 @@
         android:background="@color/white"
         >
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_rename_board"
+            android:id="@+id/et_rename_attached_file"
             style="@style/ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white_smoke"
-            android:hint="Nhập tên bảng..."
+            android:hint="Nhập tên tệp..."
             android:padding="10dp"
             android:textSize="16dp"
             />
 
         <ImageView
-            android:id="@+id/iv_rename_board_confirm"
+            android:id="@+id/iv_rename_attached_file_confirm"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_alignParentRight="true"

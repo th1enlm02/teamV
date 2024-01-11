@@ -209,6 +209,8 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
 
         dialog.setCancelable(true);
 
+        selectedColor = R.color.custom_blue;
+
         EditText etBoardName = dialog.findViewById(R.id.et_board_name_to_add);
         Button btnCancel = dialog.findViewById(R.id.btn_cancel_add_board_dialog);
         Button btnOK = dialog.findViewById(R.id.btn_ok_add_board_dialog);
@@ -237,6 +239,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
                     Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
 
                     writeBoardDataToFireStore(writeBoard);
+
                     selectedColor = R.color.custom_blue;
                 }
                 dialog.dismiss();
@@ -453,6 +456,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
                     board.setName(etBoardName.getText().toString());
 
                     updateBoardItem(board);
+
                     selectedColor = R.color.custom_blue;
                 }
                 dialog.dismiss();

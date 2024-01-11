@@ -3,6 +3,8 @@ package com.example.teamv.activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -25,8 +27,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -46,8 +51,10 @@ import com.example.teamv.R;
 import com.example.teamv.adapter.AttachedFileAdapter;
 import com.example.teamv.adapter.ColorPickerAdapter;
 import com.example.teamv.adapter.ToDoListAdapter;
+import com.example.teamv.my_interface.ClickAttachedFileItemInterface;
 import com.example.teamv.my_interface.ToDoListItemTouchHelperInterface;
 import com.example.teamv.object.AttachedFile;
+import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
 import com.example.teamv.object.ToDoListTask;
 import com.example.teamv.recyclerview_class.ToDoListItemTouchHelper;
@@ -95,6 +102,9 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
     private RecyclerView rcvToDoList,
                 rcvAttachedFileList;
     private SwipeRefreshLayout cardSwipeRefreshLayout;
+    private MenuBuilder toDoListMenuBuilder,
+                        cardMenuBuilder,
+                        attachedFileMenuBuilder;
     // List
     private List<ToDoListTask> toDoList = new ArrayList<>();
     private List<AttachedFile> attachedFileList = new ArrayList<>();
@@ -107,6 +117,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
     private CollectionReference cardCollectionReference = updateCardFirestore.collection("Card");
     // Firebase Storage
     private StorageReference attachedFileStorageReference = FirebaseStorage.getInstance().getReference();
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +125,19 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         // set views
         findViewByIds();
+
+        // menu builders
+        toDoListMenuBuilder = new MenuBuilder(this);
+        MenuInflater toDoListMenuInflater = new MenuInflater(this);
+        toDoListMenuInflater.inflate(R.menu.menu_to_do_list_option, toDoListMenuBuilder);
+
+        cardMenuBuilder = new MenuBuilder(this);
+        MenuInflater cardMenuInflater = new MenuInflater(this);
+        cardMenuInflater.inflate(R.menu.menu_card_option, cardMenuBuilder);
+
+        attachedFileMenuBuilder = new MenuBuilder(this);
+        MenuInflater attachedFileMenuInflater = new MenuInflater(this);
+        attachedFileMenuInflater.inflate(R.menu.menu_attached_file_option, attachedFileMenuBuilder);
 
         // set refresh listener
         cardSwipeRefreshLayout.setOnRefreshListener(CardActivity.this);
@@ -224,6 +248,24 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
             @Override
             public void onClick(View v) {
                 selectFileFromDevice();
+            }
+        });
+        ivToDoListOption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showToDoListOption(v);
+            }
+        });
+        ivCardOption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCardOption(v);
+            }
+        });
+        tvCardName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openRenameCardDialog();
             }
         });
     }
@@ -350,7 +392,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         String boardID = myCard.getBoard_id();
         String userID = getUserIDBySplitingBoardID(boardID);
-        final StorageReference reference = attachedFileStorageReference.child(userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + System.currentTimeMillis() + "." + fileExtension);
+        final StorageReference reference = attachedFileStorageReference.child(userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + fileCreatedAt + "." + fileExtension);
 
         reference.putFile(data)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -359,7 +401,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                         Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
                         while (!uriTask.isComplete());
                         Uri uri = uriTask.getResult();
-                        AttachedFile attachedFile = new AttachedFile(fileName, fileCreatedAt, fileSize, uri.toString(), fileFormat);
+                        AttachedFile attachedFile = new AttachedFile(fileName, fileCreatedAt, fileSize, uri.toString(), fileFormat, fileExtension);
                         attachedFileList.add(attachedFile);
                         myCard.setAttached_file_list(attachedFileList);
                         attachedFileAdapter.notifyDataSetChanged();
@@ -510,7 +552,12 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         rcvAttachedFileList.setLayoutManager(new LinearLayoutManager(CardActivity.this));
         RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(CardActivity.this, DividerItemDecoration.VERTICAL);
         rcvAttachedFileList.addItemDecoration(itemDecoration);
-        attachedFileAdapter = new AttachedFileAdapter(attachedFileList);
+        attachedFileAdapter = new AttachedFileAdapter(attachedFileList, new ClickAttachedFileItemInterface() {
+            @Override
+            public void onClickAttachedFileItem(View v, int index) {
+                showAttachedFileOption(v, index);
+            }
+        });
         rcvAttachedFileList.setAdapter(attachedFileAdapter);
     }
     private void openDeadlinePickerDialog(Card card) {
@@ -696,5 +743,299 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onBackPressed();
         updateMyCardData(myCard);
         finish();
+    }
+    private void openRenameCardDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_rename_card);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        EditText etRenameCard = (EditText) dialog.findViewById(R.id.et_rename_card);
+        ImageView ivRenameCardConfirm = (ImageView) dialog.findViewById(R.id.iv_rename_card_confirm);
+        ivRenameCardConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!TextUtils.isEmpty(etRenameCard.getText().toString())) {
+                    myCard.setName(etRenameCard.getText().toString());
+
+                    tvCardName.setText(etRenameCard.getText().toString());
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void checkedAllTodolist() {
+        for (int i = 0; i < toDoList.size(); i++) {
+            if (!toDoList.get(i).isIs_checked()) {
+                toDoList.get(i).setIs_checked(true);
+            }
+        }
+    }
+    private void openDeleteToDoListDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_delete_to_do_list);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        TextView tvCancelDeleteToDoList = (TextView) dialog.findViewById(R.id.tv_cancel_delete_to_do_list_dialog);
+        TextView tvConfirmDeleteToDoList = (TextView) dialog.findViewById(R.id.tv_confirm_delete_to_do_list_dialog);
+
+        tvCancelDeleteToDoList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        tvConfirmDeleteToDoList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toDoList.clear();
+                toDoListAdapter.notifyDataSetChanged();
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void openDeleteCardDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_delete_card);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        TextView tvCancelDeleteCard = (TextView) dialog.findViewById(R.id.tv_cancel_delete_card_dialog);
+        TextView tvConfirmDeleteCard = (TextView) dialog.findViewById(R.id.tv_confirm_delete_card_dialog);
+
+        tvCancelDeleteCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        tvConfirmDeleteCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteMyCard();
+                dialog.dismiss();
+                onBackPressed();
+                finish();
+            }
+        });
+        dialog.show();
+    }
+    private void deleteMyCard() {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
+
+        collectionReference.document(myCard.getCard_id())
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("SuccessfulDelete", "Deleted card from Firestore successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("FailedDelete", e.getMessage());
+                    }
+                });
+    }
+
+    private void openRenameAttachedFileDialog(int index) {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_rename_attached_file);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        EditText etRenameAttachedFile = (EditText) dialog.findViewById(R.id.et_rename_attached_file);
+        ImageView ivRenameAttachedFileConfirm = (ImageView) dialog.findViewById(R.id.iv_rename_attached_file_confirm);
+        ivRenameAttachedFileConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!TextUtils.isEmpty(etRenameAttachedFile.getText().toString())) {
+                    attachedFileList.get(index).setName(etRenameAttachedFile.getText().toString());
+                    attachedFileAdapter.notifyItemChanged(index);
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void openDeleteAttachedFileDialog(int index) {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_delete_attached_file);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+        window.setAttributes(windowAttributes);
+
+        dialog.setCancelable(true);
+
+        TextView tvCancelDeleteAttachedFile = (TextView) dialog.findViewById(R.id.tv_cancel_delete_attached_file_dialog);
+        TextView tvConfirmDeleteAttachedFile = (TextView) dialog.findViewById(R.id.tv_confirm_delete_attached_file_dialog);
+
+        tvCancelDeleteAttachedFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        tvConfirmDeleteAttachedFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteAttachedFileFromStorage(index);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private String getAttachedPath(AttachedFile attachedFile){
+        String boardID = myCard.getBoard_id();
+        String userID = getUserIDBySplitingBoardID(boardID);
+        String fileFormat = attachedFile.getFormat();
+        String fileCreatedAt = attachedFile.getCreated_at();
+        String fileExtension = attachedFile.getExtension();
+        String filePath = userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + fileCreatedAt + "." + fileExtension;
+        return filePath;
+    }
+    private void deleteAttachedFileFromStorage(int index) {
+        AttachedFile attachedFile = attachedFileList.get(index);
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReference().child(getAttachedPath(attachedFile));
+
+        storageReference
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Xoá thành công
+                        Log.d("DeleteFile", "Deleted file successfully");
+                        attachedFileList.remove(index);
+                        attachedFileAdapter.notifyItemRemoved(index);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Xoá thất bại
+                        Log.e("DeleteFileFailed",  e.getMessage());
+                    }
+                });
+    }
+    @SuppressLint("RestrictedApi")
+    public void showAttachedFileOption(View v, int index) {
+        MenuPopupHelper menuPopupHelper = new MenuPopupHelper(this, attachedFileMenuBuilder, v);
+        menuPopupHelper.setForceShowIcon(true);
+        attachedFileMenuBuilder.setCallback(new MenuBuilder.Callback() {
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
+                if (item.getItemId() == R.id.menu_attached_file_option_rename) {
+                    openRenameAttachedFileDialog(index);
+                } else if (item.getItemId() == R.id.menu_attached_file_option_delete) {
+                    openDeleteAttachedFileDialog(index);
+                }
+                return true;
+            }
+            @Override
+            public void onMenuModeChange(@NonNull MenuBuilder menu) {
+
+            }
+        });
+        menuPopupHelper.show();
+    }
+    @SuppressLint("RestrictedApi")
+    public void showCardOption(View v) {
+        MenuPopupHelper menuPopupHelper = new MenuPopupHelper(this, cardMenuBuilder, v);
+        menuPopupHelper.setForceShowIcon(true);
+        cardMenuBuilder.setCallback(new MenuBuilder.Callback() {
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
+                if (item.getItemId() == R.id.menu_card_option_pin) {
+                    if (!myCard.isIs_pinned()) {
+                        myCard.setIs_pinned(true);
+                    } else {
+                        myCard.setIs_pinned(false);
+                    }
+                } else if (item.getItemId() == R.id.menu_card_option_delete) {
+                    openDeleteCardDialog();
+                }
+                return true;
+            }
+            @Override
+            public void onMenuModeChange(@NonNull MenuBuilder menu) {
+
+            }
+        });
+        menuPopupHelper.show();
+    }
+    @SuppressLint("RestrictedApi")
+    public void showToDoListOption(View v) {
+        MenuPopupHelper menuPopupHelper = new MenuPopupHelper(this, toDoListMenuBuilder, v);
+        menuPopupHelper.setForceShowIcon(true);
+        toDoListMenuBuilder.setCallback(new MenuBuilder.Callback() {
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuBuilder menu, @NonNull MenuItem item) {
+                if (item.getItemId() == R.id.menu_to_do_list_option_checked_all) {
+                    checkedAllTodolist();
+                    toDoListAdapter.notifyDataSetChanged();
+                } else if (item.getItemId() == R.id.menu_to_do_list_option_delete) {
+                    openDeleteToDoListDialog();
+                }
+                return true;
+            }
+            @Override
+            public void onMenuModeChange(@NonNull MenuBuilder menu) {
+
+            }
+        });
+        menuPopupHelper.show();
     }
 }

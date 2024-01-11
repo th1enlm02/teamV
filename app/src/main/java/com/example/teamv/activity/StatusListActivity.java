@@ -51,6 +51,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -184,6 +185,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "Unscheduled")
+                .orderBy("is_pinned", Query.Direction.DESCENDING)
+                .orderBy("created_at", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -214,6 +217,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "In process")
+                .orderBy("is_pinned", Query.Direction.DESCENDING)
+                .orderBy("created_at", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -243,6 +248,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "Completed")
+                .orderBy("is_pinned", Query.Direction.DESCENDING)
+                .orderBy("created_at", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -272,6 +279,8 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         collectionReference
                 .whereEqualTo("board_id", boardID)
                 .whereEqualTo("status", "Overdue")
+                .orderBy("is_pinned", Query.Direction.DESCENDING)
+                .orderBy("created_at", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -492,7 +501,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         String userID = myBoard.getUser_id();
 
         for (AttachedFile attachedFile : attachedFiles) {
-            String fileFormat = attachedFile.getFormat(); // Lấy định dạng file từ attachedFile hoặc từ nguồn dữ liệu của bạn
+            String fileFormat = attachedFile.getFormat();
             String folderPath = userID + "/" + boardID + "/" + card.getCard_id() + "/attached_files/" + fileFormat;
 
             deleteFilesInFolder(folderPath);

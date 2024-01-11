@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+    <item
+        android:id="@+id/menu_to_do_list_option_checked_all"
+        android:title="Đánh dấu tất cả"
+        android:icon="@drawable/ic_checked_all_24x24"
+        app:showAsAction="always|withText"
+        />
+    <item
+        android:id="@+id/menu_to_do_list_option_delete"
+        android:title="Xóa danh sách"
+        android:icon="@drawable/ic_delete_black_24x24"
+        app:showAsAction="always|withText"
+        />
+</menu>

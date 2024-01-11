@@ -8,15 +8,25 @@ public class AttachedFile implements Serializable {
     private String size;
     private String url;
     private String format;
+    private String extension;
 
     AttachedFile() {};
 
-    public AttachedFile(String name, String created_at, String size, String url, String format) {
+    public AttachedFile(String name, String created_at, String size, String url, String format, String extension) {
         this.name = name;
         this.created_at = created_at;
         this.size = size;
         this.url = url;
         this.format = format;
+        this.extension = extension;
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
 
     public String getFormat() {

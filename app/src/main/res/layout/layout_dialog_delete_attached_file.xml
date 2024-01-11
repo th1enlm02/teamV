@@ -4,33 +4,18 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:layout_margin="16dp"
+    android:layout_margin="30dp"
     >
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tạo thẻ"
+        android:text="Xác nhận xoá tệp tin vĩnh viễn?"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/black"
-        android:padding="10dp"
+        android:padding="16dp"
         android:gravity="center_horizontal"
         android:background="@color/white"
-        />
-    <com.google.android.material.divider.MaterialDivider
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        />
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/et_card_name_to_add"
-        style="@style/ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white_smoke"
-        android:gravity="left"
-        android:hint="Nhập tên thẻ..."
-        android:padding="10dp"
-        android:textSize="16dp"
         />
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
@@ -43,7 +28,7 @@
         android:background="@color/white"
         >
         <TextView
-            android:id="@+id/btn_cancel_add_card_dialog"
+            android:id="@+id/tv_cancel_delete_attached_file_dialog"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -52,25 +37,25 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
             />
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="1dp"
             android:layout_height="match_parent"
             />
         <TextView
-            android:id="@+id/btn_ok_add_card_dialog"
+            android:id="@+id/tv_confirm_delete_attached_file_dialog"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="Tạo"
-            android:textColor="@color/blue4"
+            android:text="Xoá"
+            android:textColor="@color/red"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
             />
     </LinearLayout>
 </LinearLayout>

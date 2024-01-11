@@ -57,8 +57,6 @@ public class BoardListAdapter extends RecyclerView.Adapter<BoardListAdapter.Boar
             }
         });
     }
-
-
     @Override
     public int getItemCount() {
         if (boards != null)

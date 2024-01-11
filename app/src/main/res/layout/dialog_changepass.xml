@@ -14,7 +14,9 @@
         android:id="@+id/etOldPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter old password"
+        android:hint="Nhập mật khẩu cũ..."
+        android:padding="10dp"
+        android:background="@drawable/custom_edittext"
         android:inputType="textPassword"
         />
 
@@ -24,7 +26,9 @@
         android:id="@+id/etNewPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter new password"
+        android:hint="Nhập mật khẩu mới"
+        android:padding="10dp"
+        android:background="@drawable/custom_edittext"
         android:inputType="textPassword"/>
 
     <EditText
@@ -32,13 +36,14 @@
         android:id="@+id/etConfirmPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Confirm new password"
+        android:hint="Xác nhận mật khẩu"
+        android:padding="10dp"
+        android:background="@drawable/custom_edittext"
         android:inputType="textPassword"/>
     <CheckBox
         android:layout_marginStart="10dp"
         android:id="@+id/chkShowPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show Password" />
-
+        android:text="Hiển thị mật khẩu" />
 </LinearLayout>

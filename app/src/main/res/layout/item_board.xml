@@ -63,8 +63,8 @@
         </LinearLayout>
         <ImageView
             android:id="@+id/iv_edit_board"
-            android:layout_width="40sp"
-            android:layout_height="40sp"
+            android:layout_width="30sp"
+            android:layout_height="30sp"
             android:src="@drawable/ic_option_black"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
