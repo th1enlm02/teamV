@@ -198,7 +198,7 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     } else {
-                        
+
                         firebaseUser.sendEmailVerification();
                         firebaseAuth.signOut();
                         showAlertDialog();
