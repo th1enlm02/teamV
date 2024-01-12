@@ -16,7 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Handler;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -38,10 +40,12 @@ import android.widget.Toast;
 import com.example.teamv.activity.StatusListActivity;
 import com.example.teamv.adapter.ColorPickerAdapter;
 import com.example.teamv.my_interface.BoardDataCallback;
+import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.my_interface.ClickBoardItemInterface;
 import com.example.teamv.object.Board;
 import com.example.teamv.R;
 import com.example.teamv.adapter.BoardListAdapter;
+import com.example.teamv.object.Card;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -52,6 +56,8 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
@@ -111,10 +117,48 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
                 openAddBoardDialog();
             }
         });
+
+        etFindBoard.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                queryBoardFromFirestore(HomeFragment.this, s.toString());
+            }
+        });
+
         // Inflate the layout for this fragment
         return view;
     }
+    private void queryBoardFromFirestore(BoardDataCallback callback, String searchString){
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Board");
 
+        Query query = collectionReference
+                .whereEqualTo("user_id", userID)
+                .whereEqualTo("name", searchString);
+
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    List<DocumentSnapshot> myList = queryDocumentSnapshots.getDocuments();
+                    List<Board> tempList = new ArrayList<>();
+
+                    for (DocumentSnapshot documentSnapshot : myList) {
+                        Board board = documentSnapshot.toObject(Board.class);
+                        tempList.add(board);
+                    }
+                    callback.onDataReceived(tempList);
+                }
+                Log.d("QueryBoard", "Queried board successfully");
+            }
+        });
+    }
     @Override
     public void onResume() {
         super.onResume();
@@ -137,62 +181,6 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
         });
         rvBoardList.setAdapter(boardListAdapter);
     }
-    // Hàm mở dialog thêm bảng
-//    private void openAddBoardDialog() {
-//        final Dialog dialog = new Dialog(getContext());
-//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        dialog.setContentView(R.layout.layout_dialog_add_board);
-//
-//        Window window = dialog.getWindow();
-//        if (window == null)
-//            return;
-//        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
-//        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-//        WindowManager.LayoutParams windowAttributes = window.getAttributes();
-//        windowAttributes.gravity = Gravity.BOTTOM;
-//        window.setAttributes(windowAttributes);
-//        window.getAttributes().windowAnimations = R.style.DialogAnimation;
-//
-//        dialog.setCancelable(true);
-//
-//        EditText etBoardName = dialog.findViewById(R.id.et_board_name_to_add);
-//        Button btnCancel = dialog.findViewById(R.id.btn_cancel_add_board_dialog);
-//        Button btnOK = dialog.findViewById(R.id.btn_ok_add_board_dialog);
-//        ivBroadColor = dialog.findViewById(R.id.iv_board_color_to_add);
-//
-//        // Hàm thêm color picker
-//        ivBroadColor.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                openDiaLogColor();
-//            }
-//        });
-//
-//        btnCancel.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                dialog.dismiss();
-//            }
-//        });
-//        // Xử lý thêm thông tin board vào database
-//        btnOK.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (!etBoardName.getText().equals("")) {
-//                    // Lấy thông tin của board được nhập vào
-//                    Board writeBoard = new Board(formatBoardId(getCurrentTime()), etBoardName.getText().toString(), selectedColor, getCurrentTime(), userID);
-//
-//                    writeBoardDataToFireStore(writeBoard);
-//                    Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
-//                    dialog.dismiss();
-//                } else {
-//                    dialog.dismiss();
-//                }
-//            }
-//        });
-//        dialog.show();
-//    }
-
     private void writeBoardDataToFireStore (Board writeBoard) {
         String boardID = writeBoard.getBoard_id();
         DocumentReference documentReference = writeBoardFirestore.collection("Board").document(boardID);
@@ -306,6 +294,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
     }
     @Override
     public void onDataReceived(List<Board> boards) {
+        Log.d("onDataReceived", "Received new data"); // Thêm dòng log để kiểm tra
         // Đã nhận được dữ liệu từ `onSuccess` và có thể sử dụng nó ở đây
         this.boards.clear(); // Xóa dữ liệu cũ
         this.boards.addAll(boards); // Thêm dữ liệu mới

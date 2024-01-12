@@ -78,7 +78,7 @@
                         android:paddingEnd="10dp"
                         android:layout_centerHorizontal="true"
                         android:inputType="text"
-                        android:hint="Tìm kiếm bảng"
+                        android:hint="Tìm bảng..."
                         />
                 </LinearLayout>
                 <ScrollView

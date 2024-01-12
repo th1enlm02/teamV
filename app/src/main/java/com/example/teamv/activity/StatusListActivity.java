@@ -586,6 +586,17 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                         }
                     }
                 });
+                snackbar.addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event == DISMISS_EVENT_TIMEOUT || event == DISMISS_EVENT_SWIPE ||
+                                event == DISMISS_EVENT_CONSECUTIVE || event == DISMISS_EVENT_MANUAL) {
+                            deleteCardFromStorage(cardDelete);
+                            deleteCardFromFirestore(cardDelete);
+                            setStatusListNumber();
+                        }
+                    }
+                });
                 snackbar.setActionTextColor(Color.WHITE);
                 snackbar.show();
             } else if (identifier.equals("Completed")) {
@@ -608,6 +619,17 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                         }
                     }
                 });
+                snackbar.addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event == DISMISS_EVENT_TIMEOUT || event == DISMISS_EVENT_SWIPE ||
+                                event == DISMISS_EVENT_CONSECUTIVE || event == DISMISS_EVENT_MANUAL) {
+                            deleteCardFromStorage(cardDelete);
+                            deleteCardFromFirestore(cardDelete);
+                            setStatusListNumber();
+                        }
+                    }
+                });
                 snackbar.setActionTextColor(Color.WHITE);
                 snackbar.show();
             } else if (identifier.equals("Overdue")) {
@@ -627,6 +649,17 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
                         overdueListAdapter.undoItem(cardDelete, indexCardDelete);
                         if (indexCardDelete == 0 || indexCardDelete == listOverdue.size() - 1) {
                             rcvOverdue.scrollToPosition(indexCardDelete);
+                        }
+                    }
+                });
+                snackbar.addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event == DISMISS_EVENT_TIMEOUT || event == DISMISS_EVENT_SWIPE ||
+                                event == DISMISS_EVENT_CONSECUTIVE || event == DISMISS_EVENT_MANUAL) {
+                            deleteCardFromStorage(cardDelete);
+                            deleteCardFromFirestore(cardDelete);
+                            setStatusListNumber();
                         }
                     }
                 });

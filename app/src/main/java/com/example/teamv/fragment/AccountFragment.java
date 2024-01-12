@@ -58,7 +58,6 @@ public class AccountFragment extends Fragment {
     // Firebase
     private FirebaseAuth firebaseAuth;
 
-
     // Toan
     private TextView btnchangepass;
     private String password;
@@ -76,8 +75,7 @@ public class AccountFragment extends Fragment {
         firebaseAuth = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         if (firebaseUser == null) {
-            Toast.makeText(getActivity(), "Đã xảy ra lỗi. Thông tin người dùng hiện không có sẵn",
-                    Toast.LENGTH_LONG).show();
+            Log.e("GetUserInfor", "Not found");
         } else {
             userID = firebaseUser.getUid();
 
@@ -122,14 +120,14 @@ public class AccountFragment extends Fragment {
                                     tvage.setText("Tuổi: 21");
                                 }
                             } else {
-                                Toast.makeText(getActivity(), "Không tìm thấy thông tin người dùng", Toast.LENGTH_SHORT).show();
+                                Log.e("GetUserInfor", "Not found");
                             }
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getActivity(), "Đã xảy ra lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Log.e("GetUserInfor", e.getMessage());
                         }
                     });
         }

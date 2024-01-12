@@ -98,9 +98,9 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
             cvAddAttachedFile;
     private RelativeLayout rlToDoListAddTask;
     private TextView tvCardName, tvCardCreatedAt,
-            tvDeadline;
-    private EditText etCardDescription,
-            etToDoListAddTask;
+            tvDeadline,
+            tvCardDescription;
+    private EditText etToDoListAddTask;
     private RecyclerView rcvToDoList,
                 rcvAttachedFileList;
     private SwipeRefreshLayout cardSwipeRefreshLayout;
@@ -270,6 +270,53 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                 openRenameCardDialog();
             }
         });
+        tvCardDescription.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openEnterDescriptionDialog();
+            }
+        });
+    }
+    private void openEnterDescriptionDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.layout_dialog_enter_description);
+
+        Window window = dialog.getWindow();
+        if (window == null)
+            return;
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.BOTTOM;
+        window.setAttributes(windowAttributes);
+        window.getAttributes().windowAnimations = R.style.DialogAnimation;
+
+        dialog.setCancelable(true);
+
+        TextView tvConfirmDescription = (TextView) dialog.findViewById(R.id.tv_confirm_description_dialog);
+        TextView tvCancelDescription = (TextView) dialog.findViewById(R.id.tv_cancel_description_dialog);
+        EditText etCardDescription = (EditText) dialog.findViewById(R.id.et_card_description);
+
+        etCardDescription.setText(tvCardDescription.getText());
+        etCardDescription.setSelection(tvCardDescription.getText().length());
+
+        tvCancelDescription.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        tvConfirmDescription.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String description = etCardDescription.getText().toString();
+                tvCardDescription.setText(description);
+                myCard.setDescription(description);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
     private String getUserIDBySplitingBoardID(String boardID){
         return boardID.substring(0, boardID.indexOf('?'));
@@ -478,7 +525,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         // description
         if (!card.getDescription().equals("")) {
-            etCardDescription.setText(card.getDescription());
+            tvCardDescription.setText(card.getDescription());
         }
         // status
         boolean isChecked = card.isIs_checked_complete();
@@ -525,6 +572,9 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         // attached file list
         attachedFileList = card.getAttached_file_list();
         setAttachedFileList();
+
+        // description
+        tvCardDescription.setText(card.getDescription());
     }
     private String getCurrentTime() {
         Date currentTime = new Date();
@@ -730,7 +780,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         tvCardName = (TextView) findViewById(R.id.tv_card_name);
         tvCardCreatedAt = (TextView) findViewById(R.id.tv_card_created_at);
 
-        etCardDescription = (EditText) findViewById(R.id.et_card_description);
+        tvCardDescription = (TextView) findViewById(R.id.tv_card_description);
 
         tvDeadline = (TextView) findViewById(R.id.tv_deadline);
         ivIsCheckedComplete = (ImageView) findViewById(R.id.iv_is_checked_complete);
@@ -783,6 +833,10 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         EditText etRenameCard = (EditText) dialog.findViewById(R.id.et_rename_card);
         ImageView ivRenameCardConfirm = (ImageView) dialog.findViewById(R.id.iv_rename_card_confirm);
+
+        etRenameCard.setText(tvCardName.getText());
+        etRenameCard.setSelection(tvCardName.getText().length());
+
         ivRenameCardConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

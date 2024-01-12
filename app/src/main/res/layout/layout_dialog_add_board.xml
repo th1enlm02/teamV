@@ -41,7 +41,7 @@
             android:background="@drawable/custom_edittext"
             android:gravity="left"
             android:layout_marginTop="5dp"
-            android:hint="Nhập tên bảng"
+            android:hint="Nhập tên bảng..."
             android:padding="10dp"
             />
         <com.google.android.material.divider.MaterialDivider
