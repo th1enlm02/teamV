@@ -6,14 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:weightSum="10"
+
     android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="horizontal"
-        android:layout_marginBottom="20dp"
         android:layout_marginTop="20dp"
+        android:background="@color/blue1"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
         >
 
         <ImageView
@@ -54,81 +58,92 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/light_gray">
+        android:background="@color/light_gray"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp">
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"
             android:layout_weight="1"
             android:text="SUN"
             android:textStyle="bold"
-            android:textColor="@color/black"
+
             android:textAlignment="center"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"
             android:layout_weight="1"
             android:text="MON"
             android:textStyle="bold"
 
-            android:textColor="@color/black"
             android:textAlignment="center"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"            android:layout_weight="1"
             android:text="TUE"
             android:textStyle="bold"
-
-            android:textColor="@color/black"
             android:textAlignment="center"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"            android:layout_weight="1"
             android:text="WED"
             android:textStyle="bold"
 
-            android:textColor="@color/black"
             android:textAlignment="center"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"            android:layout_weight="1"
             android:text="THU"
             android:textStyle="bold"
 
-            android:textColor="@color/black"
             android:textAlignment="center"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"            android:layout_weight="1"
             android:text="FRI"
             android:textStyle="bold"
 
-            android:textColor="@color/black"
             android:textAlignment="center"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:background="@color/blue4"
+            android:textColor="@color/white"            android:layout_weight="1"
             android:text="SAT"
             android:textStyle="bold"
 
-            android:textColor="@color/black"
             android:textAlignment="center"
             android:textSize="16sp"/>
 
@@ -138,6 +153,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_Calendar"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="300dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+
         />
 </LinearLayout>
