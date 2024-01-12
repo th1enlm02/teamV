@@ -60,15 +60,15 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        etEmail = (EditText) findViewById(R.id.et_email);
-        etPassword = (EditText) findViewById(R.id.et_password);
         tvRegister = (TextView) findViewById(R.id.tv_register);
         btnLogin = (Button) findViewById(R.id.btn_login);
         progressBar = (ProgressBar) findViewById(R.id.process_bar_login);
+        etEmail = (EditText) findViewById(R.id.et_email);
+        etPassword = (EditText) findViewById(R.id.et_password);
+
         // Chuc Thien
         sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
         editor = sharedPreferences.edit();
-
 
         // Chuc Thien
         sharedPreferences = getSharedPreferences(PREFERENCE_KEY,MODE_PRIVATE); // tạo "LogIn_SharePreferences"
@@ -198,6 +198,7 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     } else {
+                        
                         firebaseUser.sendEmailVerification();
                         firebaseAuth.signOut();
                         showAlertDialog();
