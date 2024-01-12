@@ -192,6 +192,33 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
 //        });
 //        dialog.show();
 //    }
+
+    private void writeBoardDataToFireStore (Board writeBoard) {
+        String boardID = writeBoard.getBoard_id();
+        DocumentReference documentReference = writeBoardFirestore.collection("Board").document(boardID);
+
+        progressBar.setVisibility(View.VISIBLE);
+        documentReference.set(writeBoard)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        // thêm board vào list
+                        boards.add(writeBoard);
+                        boardListAdapter.notifyDataSetChanged();
+
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("WriteBoardFailed", e.getMessage());
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+    }
+
     private void openAddBoardDialog() {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -246,31 +273,6 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
             }
         });
         dialog.show();
-    }
-    private void writeBoardDataToFireStore (Board writeBoard) {
-        String boardID = writeBoard.getBoard_id();
-        DocumentReference documentReference = writeBoardFirestore.collection("Board").document(boardID);
-
-        progressBar.setVisibility(View.VISIBLE);
-        documentReference.set(writeBoard)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        // thêm board vào list
-                        boards.add(writeBoard);
-                        boardListAdapter.notifyDataSetChanged();
-
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("WriteBoardFailed", e.getMessage());
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
     }
     private void readMyBoardData(BoardDataCallback callback) {
         boards.clear();
