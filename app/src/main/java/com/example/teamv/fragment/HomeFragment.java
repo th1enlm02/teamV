@@ -192,6 +192,33 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
 //        });
 //        dialog.show();
 //    }
+
+    private void writeBoardDataToFireStore (Board writeBoard) {
+        String boardID = writeBoard.getBoard_id();
+        DocumentReference documentReference = writeBoardFirestore.collection("Board").document(boardID);
+
+        progressBar.setVisibility(View.VISIBLE);
+        documentReference.set(writeBoard)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        // thêm board vào list
+                        boards.add(writeBoard);
+                        boardListAdapter.notifyDataSetChanged();
+
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("WriteBoardFailed", e.getMessage());
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+    }
+
     private void openAddBoardDialog() {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -247,31 +274,6 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
         });
         dialog.show();
     }
-    private void writeBoardDataToFireStore (Board writeBoard) {
-        String boardID = writeBoard.getBoard_id();
-        DocumentReference documentReference = writeBoardFirestore.collection("Board").document(boardID);
-
-        progressBar.setVisibility(View.VISIBLE);
-        documentReference.set(writeBoard)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        // thêm board vào list
-                        boards.add(writeBoard);
-                        boardListAdapter.notifyDataSetChanged();
-
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), "Tạo bảng thành công!", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("WriteBoardFailed", e.getMessage());
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
-    }
     private void readMyBoardData(BoardDataCallback callback) {
         boards.clear();
         if (boardListAdapter != null)
@@ -310,11 +312,13 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
         boardListAdapter.notifyDataSetChanged(); // Cập nhật RecyclerView
     }
 
+    //Color picker
     public void openDiaLogColor()
     {
         final Dialog dialog = new Dialog(getContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.layout_dialog_color_picker);
+
 
         Window window = dialog.getWindow();
         if (window == null)
@@ -332,7 +336,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
         ImageView ivClose = (ImageView) dialog.findViewById(R.id.iv_close_color_picker);
 
         int[] colors = {
-            R.color.custom_blue, R.color.custom_green, R.color.custom_orange, R.color.custom_red, R.color.custom_yellow,
+                R.color.custom_blue, R.color.custom_green, R.color.custom_orange, R.color.custom_red, R.color.custom_yellow,
                 R.color.custom_purple, R.color.custom_pink, R.color.custom_cyan, R.color.custom_lime, R.color.custom_silver
         };
         ColorPickerAdapter adapter = new ColorPickerAdapter(getContext(), colors);
@@ -356,6 +360,10 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
         });
         dialog.show();
     }
+
+
+
+
     // Xử lý click vào board item
     private void onClickBoardItemGoToStatusList(Board board){
         Intent intent = new Intent(getContext(), StatusListActivity.class);
