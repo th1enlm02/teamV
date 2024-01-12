@@ -88,7 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        // Bắt sự kiện chuyển sang màn hình đăng nhập
+        // Sự kiện chuyển sang màn hình đăng nhập
         tvLogin.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
@@ -100,6 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Khai báo biến
                 String fullname, email, password, confirm_passwod;
                 fullname = etFullname.getText().toString();
                 email = etEmail.getText().toString();
@@ -109,18 +110,22 @@ public class RegisterActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(fullname) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirm_passwod)){
                     Toast.makeText(RegisterActivity.this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_LONG).show();
                     if (TextUtils.isEmpty(fullname)) {
+                        //Kiểm tra họ tên
                         etFullname.setError("Hãy nhập họ và tên");
                         etFullname.requestFocus();
                     }
                     else if (TextUtils.isEmpty(email)) {
+                        //Kiểm tra email
                         etEmail.setError("Email không được bỏ trống");
                         etEmail.requestFocus();
                     }
                     else if (TextUtils.isEmpty(password)) {
+                        //Kiểm tra mật khẩu
                         etPassword.setError("Mật khẩu không hợp lệ");
                         etPassword.requestFocus();
                     }
                     else if (TextUtils.isEmpty(confirm_passwod)) {
+                        //Kiểm tra xác nhận mk
                         etConfirmPassword.setError("Mật khẩu không hợp lệ");
                         etConfirmPassword.requestFocus();
                     }
@@ -143,11 +148,13 @@ public class RegisterActivity extends AppCompatActivity {
                 }
                 else {
                     progressBar.setVisibility(View.VISIBLE);
+                    //Sau khi đp ứng đầy đủ điều kiện, tiến hành thực hiện dki
                     registerUser(fullname, email, password);
                 }
             }
             private void registerUser(String fullname, String email, String password) {
                 FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                //Tạo user trong Authentication
                 mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(RegisterActivity.this,
                         new OnCompleteListener<AuthResult>() {
                             @Override
@@ -239,13 +246,14 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
     }
+    //Hàm lấy thông tin ID đối tượng cụ thể
     private void findViewByIds() {
-        etFullname = (EditText) findViewById(R.id.et_fullname);
-        etEmail = (EditText) findViewById(R.id.et_email);
-        etPassword = (EditText) findViewById(R.id.et_password);
         etConfirmPassword = (EditText) findViewById(R.id.et_confirm_password);
         btnRegister = (Button) findViewById(R.id.btn_register);
         tvLogin = (TextView) findViewById(R.id.tv_login);
+        etFullname = (EditText) findViewById(R.id.et_fullname);
+        etEmail = (EditText) findViewById(R.id.et_email);
+        etPassword = (EditText) findViewById(R.id.et_password);
         progressBar = (ProgressBar) findViewById(R.id.process_bar_register);
     }
 }
