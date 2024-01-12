@@ -178,6 +178,12 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                 daysInMonthArray.add(String.valueOf(i - dayOfWeek));
             }
         }
+
+        if(daysInMonthArray.get(6)=="")
+        {
+            for (int i=0;i<7;i++)
+                daysInMonthArray.remove(0);
+        }
         return  daysInMonthArray;
     }
 
