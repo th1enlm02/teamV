@@ -186,7 +186,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/blue5"
-            android:text="Logout"
+            android:text="Log out"
             android:layout_below="@id/tv_edit_profile"
             />
     </LinearLayout>
