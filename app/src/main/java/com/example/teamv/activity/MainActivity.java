@@ -12,7 +12,7 @@ import com.example.teamv.fragment.AccountFragment;
 import com.example.teamv.fragment.HomeFragment;
 import com.example.teamv.fragment.NotificationsFragment;
 import com.example.teamv.R;
-import com.example.teamv.fragment.SearchFragment;
+import com.example.teamv.fragment.CalendarFragment;
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
@@ -31,8 +31,8 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.home) {
                 replaceFragment(new HomeFragment());
-            } else if (itemId == R.id.search) {
-                replaceFragment(new SearchFragment());
+            } else if (itemId == R.id.calendar) {
+                replaceFragment(new CalendarFragment());
             } else if (itemId == R.id.notifications) {
                 replaceFragment(new NotificationsFragment());
             } else if (itemId == R.id.account) {

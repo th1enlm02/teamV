@@ -63,6 +63,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -316,7 +318,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
 
             String fileExtension = getFileExtension(uri);
 
-            uploadFileToFirestore(data.getData(), fileFormat, fileExtension, fileName, fileCreatedAt, fileSize);
+            uploadFileToStorage(data.getData(), fileFormat, fileExtension, fileName, fileCreatedAt, fileSize);
         }
     }
     private String getFileExtension(Uri uri) {
@@ -385,7 +387,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         return attachedFileName;
     }
-    private void uploadFileToFirestore (Uri data, String fileFormat, String fileExtension, String fileName, String fileCreatedAt, String fileSize) {
+    private void uploadFileToStorage (Uri data, String fileFormat, String fileExtension, String fileName, String fileCreatedAt, String fileSize) {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Đang tải tệp...");
         progressDialog.show();
@@ -404,6 +406,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                         AttachedFile attachedFile = new AttachedFile(fileName, fileCreatedAt, fileSize, uri.toString(), fileFormat, fileExtension);
                         attachedFileList.add(attachedFile);
                         myCard.setAttached_file_list(attachedFileList);
+                        updateFileToFirestore(myCard);
                         attachedFileAdapter.notifyDataSetChanged();
                         Toast.makeText(CardActivity.this, "Tải tệp thành công!", Toast.LENGTH_SHORT).show();
                         progressDialog.dismiss();
@@ -417,6 +420,25 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                     }
                 });
     }
+    private void updateFileToFirestore(Card card) {
+        String cardID = card.getCard_id();
+        cardCollectionReference.document(cardID)
+                .update(
+                        "attached_file_list", card.getAttached_file_list()
+                )
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.i("SuccessUpdateFile", "Updated file successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("UpdateFileFailed", e.getMessage());
+                    }
+                });
+    }
     private void updateMyCardData (Card card) {
         String cardID = card.getCard_id();
         cardCollectionReference.document(cardID)
@@ -426,7 +448,6 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                         "description", card.getDescription(),
                         "deadline_at", card.getDeadline_at(),
                         "to_do_list", card.getTo_do_list(),
-                        "attached_file_list", card.getAttached_file_list(),
                         "is_checked_complete", card.isIs_checked_complete(),
                         "is_pinned", card.isIs_pinned(),
                         "status", card.getStatus()
@@ -895,13 +916,37 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
             @Override
             public void onClick(View v) {
                 if (!TextUtils.isEmpty(etRenameAttachedFile.getText().toString())) {
-                    attachedFileList.get(index).setName(etRenameAttachedFile.getText().toString());
+                    String newName = etRenameAttachedFile.getText().toString();
+                    attachedFileList.get(index).setName(newName);
+                    myCard.setAttached_file_list(attachedFileList);
+                    updateAttachedFileNameToFirestore();
                     attachedFileAdapter.notifyItemChanged(index);
                 }
                 dialog.dismiss();
             }
         });
         dialog.show();
+    }
+    private void updateAttachedFileNameToFirestore() {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        DocumentReference documentReference = firestore.collection("Card").document(myCard.getCard_id());
+
+        documentReference
+                .update("attached_file_list", attachedFileList)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Update successful
+                        Log.d("FirestoreUpdate", "Filename successfully updated!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Handle errors
+                        Log.e("FirestoreUpdate", "Error updating filename", e);
+                    }
+                });
     }
     private void openDeleteAttachedFileDialog(int index) {
         final Dialog dialog = new Dialog(this);
@@ -932,10 +977,55 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
             @Override
             public void onClick(View v) {
                 deleteAttachedFileFromStorage(index);
+                deleteAttachedFileFromFirestore(index);
+                attachedFileList.remove(index);
+                myCard.setAttached_file_list(attachedFileList);
+                attachedFileAdapter.notifyDataSetChanged();
                 dialog.dismiss();
             }
         });
         dialog.show();
+    }
+
+    private void deleteAttachedFileFromFirestore(int index){
+        if (index >= 0 && index < attachedFileList.size()) {
+            FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+            DocumentReference documentReference = firestore.collection("Card").document(myCard.getCard_id());
+
+            documentReference
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if (documentSnapshot.exists()) {
+                                Card card = documentSnapshot.toObject(Card.class);
+                                List<AttachedFile> attachedFiles = card.getAttached_file_list();
+
+                                if (attachedFiles != null && index >= 0 && index < attachedFiles.size()) {
+                                    attachedFiles.remove(index);
+                                }
+                                documentReference
+                                        .update("attached_file_list", attachedFiles)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                // Update successful
+                                                Log.d("FirestoreUpdate", "Document successfully updated!");
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                // Handle errors
+                                                Log.e("FirestoreUpdate", "Error updating document", e);
+                                            }
+                                        });
+                            }
+                        }
+                    });
+        } else {
+            Log.e("IndexOutOfBounds", "Invalid index: " + index);
+        }
     }
     private String getAttachedPath(AttachedFile attachedFile){
         String boardID = myCard.getBoard_id();
@@ -958,8 +1048,6 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                     public void onSuccess(Void aVoid) {
                         // Xoá thành công
                         Log.d("DeleteFile", "Deleted file successfully");
-                        attachedFileList.remove(index);
-                        attachedFileAdapter.notifyItemRemoved(index);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
