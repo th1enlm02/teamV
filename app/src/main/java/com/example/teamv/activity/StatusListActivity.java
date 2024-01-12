@@ -69,6 +69,7 @@ import java.util.Locale;
 public class StatusListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, CardDataCallback, CardItemTouchHelperInterface {
     private Board myBoard;
     private String boardID;
+    private String userID;
     // status lists
     private List<Card> listUnscheduled = new ArrayList<>();
     private List<Card> listInProcess = new ArrayList<>();
@@ -100,6 +101,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
         // Lấy thông tin board từ main activity
         myBoard = getBoardInfoFromHomeFragment();
         boardID = myBoard.getBoard_id();
+        userID = myBoard.getUser_id();
 
         // set layout
         tvTitle.setText(myBoard.getName());
@@ -368,7 +370,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
             @Override
             public void onClick(View v) {
                 if (!TextUtils.isEmpty(etCardName.getText().toString())) {
-                    Card writeCard = new Card(formatCardId(getCurrentTime()), boardID, etCardName.getText().toString(),
+                    Card writeCard = new Card(formatCardId(getCurrentTime()), boardID, userID, etCardName.getText().toString(),
                             0, "", "", new ArrayList<>(), new ArrayList<>(), getCurrentTime(), false, false,
                             getString(R.string.Unscheduled));
 

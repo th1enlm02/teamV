@@ -1,11 +1,14 @@
 package com.example.teamv.fragment;
 
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +17,16 @@ import android.widget.TextView;
 
 import com.example.teamv.R;
 import com.example.teamv.adapter.CalendarAdapter;
+import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.object.Card;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -23,29 +35,35 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener{
-
+@RequiresApi(api = Build.VERSION_CODES.O)
+public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener, CardDataCallback {
     private List<Card> myCardList = new ArrayList<>();
     private TextView tv_MonthYear; //tv để hiện thông tin tháng năm
     private RecyclerView rv_Calendar;
-
     private LocalDate selectedDate; // ngày hiện tại
     public CalendarAdapter adapterCalendar;
-    ArrayList<String> deadlinesInMonth ; // những ngày có deadline trong tháng
-    ArrayList<String> daysInMonth;  // những ngày trong tháng
+    private ArrayList<String> deadlinesInMonth ; // những ngày có deadline trong tháng
+    private ArrayList<String> daysInMonth;  // những ngày trong tháng
     private ArrayList<LocalDate> deadlines; // mảng chứa thời gian có deadline
     private View view;
-    ImageView iv_nextmonth,iv_previousmonth;
-
+    private ImageView iv_nextmonth, iv_previousmonth;
+    // firebase
+    private String userID = getUserID();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_search, container, false);
+        view = inflater.inflate(R.layout.fragment_calendar, container, false);
+
 
         findViewByIds();
         initDeadlines();
         selectedDate = LocalDate.now();
         setMonthView();
+
+        // get all cards data
+        // sau hàm này là có thể sử dụng list card được lấy về
+        readAllMyCard(this);
+
         iv_previousmonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,8 +80,48 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         });
         return view;
     }
-    private void readAllMyCard() {
+    private String getUserID() {
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        String userID = null;
+        if (firebaseUser == null) {
+            Log.e("GetUserInfor", "Not found");
+        } else {
+            userID = firebaseUser.getUid();
+        }
+        return userID;
+    }
+    private void readAllMyCard(CardDataCallback callback) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Card");
 
+        collectionReference
+                .whereEqualTo("user_id", userID)
+                .orderBy("created_at", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            List<DocumentSnapshot> myList = queryDocumentSnapshots.getDocuments();
+                            List<Card> tempList = new ArrayList<>();
+
+                            for (DocumentSnapshot documentSnapshot : myList) {
+                                Card myCard = documentSnapshot.toObject(Card.class);
+                                tempList.add(myCard);
+                            }
+                            callback.onDataReceived(tempList, "Calendar");
+                        }
+                        Log.d("GetAllCards", "Read all cards successfully");
+                    }
+                });
+    }
+    @Override
+    public void onDataReceived(List<Card> cards, String identifier) {
+        if (identifier.equals("Calendar")) {
+            this.myCardList.clear();
+            this.myCardList.addAll(cards);
+        }
     }
     void initDeadlines() {
         // Tạo mảng các deadline
@@ -169,4 +227,5 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         //view.setBackgroundColor(getResources().getColor(R.color.red));
 
     }
+
 }

@@ -385,8 +385,7 @@ public class HomeFragment extends Fragment implements BoardDataCallback, SwipeRe
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
         String userID = null;
         if (firebaseUser == null) {
-            Toast.makeText(getActivity(), "Đã xảy ra lỗi. Thông tin người dùng hiện không có sẵn",
-                    Toast.LENGTH_LONG).show();
+            Log.e("GetUserInfor", "Not found");
         } else {
             userID = firebaseUser.getUid();
         }

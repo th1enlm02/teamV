@@ -6,6 +6,7 @@ import java.util.List;
 public class Card implements Serializable {
     private String card_id;
     private String board_id;
+    private String user_id;
     private String name;
     private int resource_id;
     private String description;
@@ -19,9 +20,10 @@ public class Card implements Serializable {
 
     public Card() {};
 
-    public Card(String card_id, String board_id, String name, int resource_id, String description, String deadline_at, List<ToDoListTask> to_do_list, List<AttachedFile> attached_file_list, String created_at, boolean is_checked_complete, boolean is_pinned, String status) {
+    public Card(String card_id, String board_id, String user_id, String name, int resource_id, String description, String deadline_at, List<ToDoListTask> to_do_list, List<AttachedFile> attached_file_list, String created_at, boolean is_checked_complete, boolean is_pinned, String status) {
         this.card_id = card_id;
         this.board_id = board_id;
+        this.user_id = user_id;
         this.name = name;
         this.resource_id = resource_id;
         this.description = description;
@@ -32,6 +34,14 @@ public class Card implements Serializable {
         this.is_checked_complete = is_checked_complete;
         this.is_pinned = is_pinned;
         this.status = status;
+    }
+
+    public String getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 
     public String getCard_id() {
