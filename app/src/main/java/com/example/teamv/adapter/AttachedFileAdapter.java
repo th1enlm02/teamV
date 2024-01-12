@@ -15,15 +15,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.teamv.R;
+import com.example.teamv.my_interface.ClickAttachedFileItemInterface;
 import com.example.teamv.object.AttachedFile;
 
 import java.util.List;
 
 public class AttachedFileAdapter extends RecyclerView.Adapter<AttachedFileAdapter.AttachedFileViewHolder> {
     private List<AttachedFile> attachedFileList;
+    private ClickAttachedFileItemInterface clickAttachedFileItemInterface;
 
-    public AttachedFileAdapter(List<AttachedFile> attachedFileList) {
+    public AttachedFileAdapter(List<AttachedFile> attachedFileList, ClickAttachedFileItemInterface clickAttachedFileItemInterface) {
         this.attachedFileList = attachedFileList;
+        this.clickAttachedFileItemInterface = clickAttachedFileItemInterface;
     }
 
     @NonNull
@@ -54,8 +57,13 @@ public class AttachedFileAdapter extends RecyclerView.Adapter<AttachedFileAdapte
                 v.getContext().startActivity(intent);
             }
         });
-
-        // xử lý sự kiện nút option
+        int index = position;
+        holder.ivAttachedFileOption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickAttachedFileItemInterface.onClickAttachedFileItem(v, index);
+            }
+        });
 
     }
 
