@@ -66,7 +66,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     private List<Card> myCardList = new ArrayList<>();
     private List<Card> myCardListForDashBoard = new ArrayList<>();
 
-    private TextView tv_MonthYear; //tv để hiện thông tin tháng năm
+    private TextView tv_MonthYear,tv_DeadlineInDay; //tv để hiện thông tin tháng năm
     private RecyclerView rv_Calendar;
     private LocalDate selectedDate; // ngày hiện tại
     public CalendarAdapter adapterCalendar;
@@ -111,6 +111,19 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //
                 //onClickBoardItemGoToStatusList();
+            }
+        });
+
+        tv_DeadlineInDay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(ll_task.getVisibility()==View.GONE)
+                {
+                    ll_task.setVisibility(View.VISIBLE);
+                }
+                else {
+                    ll_task.setVisibility(View.GONE);
+                }
             }
         });
 
@@ -228,6 +241,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         lv_item_task_in_calendar =(ListView) view.findViewById(R.id.lv_task_in_calendar);
         ll_task =(LinearLayout) view.findViewById(R.id.ll_task);
         pieChart = (PieChart) view.findViewById(R.id.pieChart);
+        tv_DeadlineInDay =(TextView) view.findViewById(R.id.tv_deadline_in_day);
     }
 
     private void initCard() {
