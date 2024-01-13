@@ -177,7 +177,7 @@
         <LinearLayout
             android:id="@+id/ll_task"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="300dp"
             android:layout_marginRight="10dp"
             android:layout_marginLeft="10dp"
             android:background="@color/black"

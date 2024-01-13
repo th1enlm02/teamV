@@ -1,19 +1,25 @@
 package com.example.teamv.fragment;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -29,6 +35,11 @@ import com.example.teamv.my_interface.AllCardDataCallback;
 import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,11 +50,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -51,7 +65,6 @@ import java.util.Locale;
 public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener, AllCardDataCallback {
     private List<Card> myCardList = new ArrayList<>();
     private List<Card> myCardListForDashBoard = new ArrayList<>();
-
 
     private TextView tv_MonthYear; //tv để hiện thông tin tháng năm
     private RecyclerView rv_Calendar;
@@ -66,9 +79,17 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     TextView textView;
     ListView lv_item_task_in_calendar;
 
+    //Các công việc
+    int unschedule = 0;
+    int completion=0;
+    int overdue=0;
+    int onprogress=0;
+
     private ArrayAdapter<String> adapter; // adapter mặc định cho item task khi click vào ngày
     // firebase
     private String userID;
+
+    private PieChart pieChart; // dùng cho dashboard
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -76,20 +97,12 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
 
         findViewByIds();
-       // initCard();
-       // getFormattedCardDates();
 
-        selectedDate = LocalDate.now();
-        setMonthView();
 
         // Khởi tạo ArrayAdapter
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1);
 
         lv_item_task_in_calendar.setAdapter(adapter);
-
-
-
-
         lv_item_task_in_calendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -97,6 +110,8 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                 //onClickBoardItemGoToStatusList();
             }
         });
+
+
         iv_previousmonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -164,6 +179,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         this.myCardList.clear();
         this.myCardList.addAll(cards);
         myCardListForDashBoard = myCardList;
+        selectedDate = LocalDate.now();
         getFormattedCardDates();
         initDeadlines();
         setMonthView();
@@ -189,9 +205,12 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
 
         for (Card card : myCardList) {
+            if(!card.getDeadline_at().equals(""))
+            {
+                LocalDate deadlineDate = LocalDate.parse(card.getDeadline_at(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                deadlines.add(deadlineDate);
+            }
 
-            LocalDate deadlineDate = LocalDate.parse(card.getDeadline_at(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            deadlines.add(deadlineDate);
         }
 
 
@@ -205,6 +224,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         iv_previousmonth=(ImageView) view.findViewById(R.id.iv_previousmonth);
         lv_item_task_in_calendar =(ListView) view.findViewById(R.id.lv_task_in_calendar);
         ll_task =(LinearLayout) view.findViewById(R.id.ll_task);
+        pieChart = (PieChart) view.findViewById(R.id.pieChart);
     }
 
     private void initCard() {
@@ -472,6 +492,9 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         rv_Calendar.setLayoutManager(layoutManager);
         rv_Calendar.setAdapter(adapterCalendar);
 
+        //calculateTaskInMonth();
+        updateCharts();
+
     }
 
     private ArrayList<String> daysInMonthArray(LocalDate date)
@@ -565,20 +588,27 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 //            s="Không có deadline vào ngày này";
 //        }
 //        textView.setText(s);
+        if(ll_task.getVisibility()==View.GONE)
+            ll_task.setVisibility(View.VISIBLE);
+        else
+            ll_task.setVisibility(View.GONE);
         if (dayText!="")
         {
-            ll_task.setVisibility(View.VISIBLE);
             List<String> list = new ArrayList<>();
             int flag = 0;
             String day = dayText + " " + monthYearFromDate(selectedDate);
             day = convertToFormattedDate(day);
 
             for (Card card : myCardList) {
-                String deadline = card.getDeadline_at();
-                if (day.contains(deadline)) {
-                    flag = 1;
-                    list.add(card.getName());
+                if(!card.getDeadline_at().equals(""))
+                {
+                    String deadline = card.getDeadline_at();
+                    if (day.contains(deadline)) {
+                        flag = 1;
+                        list.add(card.getName());
+                    }
                 }
+
             }
             if (flag == 0) {
                 list.add("Không có deadline vào ngày này") ;
@@ -606,12 +636,17 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     private void getFormattedCardDates() {
 
         for (Card card : myCardList) {
-            String[] parts = card.getDeadline_at().split(" ");
-            card.setDeadline_at(formatDate(parts[0]));
+            if(!card.getDeadline_at().equals(""))
+            {
+                String[] parts = card.getDeadline_at().split(" ");
+                card.setDeadline_at(formatDate(parts[0]));
+            }
+
         }
-
-
-
+        for (Card card : myCardList) {
+            String[] parts = card.getCreated_at().split(" ");
+            card.setCreated_at(formatDate(parts[0]));
+        }
     }
     private String formatDate(String inputDate) {
         // Chuyển định dạng từ "yyyy-MM-dd" sang định dạng "dd/MM/yyyy"
@@ -641,4 +676,110 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         intent.putExtras(bundle);
         startActivity(intent);
     }
+
+    private void updateCharts() {
+
+
+        // Get values from EditTexts
+        String overDueJobsStr = "2";
+        String completedJobsStr = "3";
+        String unscheduledJobStr = "4";
+        String inProcessJobStr = "5";
+
+        if (!overDueJobsStr.isEmpty() && !completedJobsStr.isEmpty() && !unscheduledJobStr.isEmpty() && !inProcessJobStr.isEmpty()) {
+            float overDueJobs = Float.parseFloat(overDueJobsStr);
+            float completedJobs = Float.parseFloat(completedJobsStr);
+            float unscheduledJobs = Float.parseFloat(unscheduledJobStr);
+            float inProcessJobs = Float.parseFloat(inProcessJobStr);
+
+            float total = overDueJobs + completedJobs + unscheduledJobs + inProcessJobs;
+
+            // Calculate percentage completion
+            float percentage_completion = (completedJobs / total) * 100;
+            float percentage_unScheduled = (unscheduledJobs / total) * 100;
+            float percentage_inProcess = (inProcessJobs / total) * 100;
+            float percentage_overDue = (overDueJobs / total) * 100;
+            // Set up PieChart
+            ArrayList<PieEntry> pieEntries = new ArrayList<>();
+            pieEntries.add(new PieEntry(percentage_completion, "Đã hoàn thành"));
+            pieEntries.add(new PieEntry(percentage_unScheduled, "Chưa đặt lịch"));
+            pieEntries.add(new PieEntry(percentage_inProcess, "Đang thực hiện"));
+            pieEntries.add(new PieEntry(percentage_overDue, "Trễ hạn"));
+
+            PieDataSet pieDataSet = new PieDataSet(pieEntries, "");
+            //pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+
+            int unscheduledColor = ContextCompat.getColor(getContext(), R.color.unscheduled);
+            int inProcessColor = ContextCompat.getColor(getContext(), R.color.in_process);
+            int completedColor = ContextCompat.getColor(getContext(), R.color.completed);
+            int overdueColor = ContextCompat.getColor(getContext(), R.color.overdue);
+
+            int[] customColors = new int[]{completedColor, unscheduledColor, inProcessColor, overdueColor};
+            pieDataSet.setColors(customColors);
+            pieDataSet.setColors(customColors);
+            pieDataSet.setColors(customColors);
+            pieDataSet.setValueTextSize(18f); // Set textSize for the values in the PieChart
+            pieDataSet.setValueTextColor(Color.WHITE);
+
+            PieData pieData = new PieData(pieDataSet);
+            pieChart.setData(pieData);
+            pieChart.getDescription().setEnabled(false);
+            pieChart.invalidate();
+
+            // Hiển thị tổng công việc giữa PieChart
+            pieChart.setCenterText("Tổng công việc\n" + String.format("%.0f", total));
+            pieChart.setCenterTextSize(14f);
+            pieChart.setCenterTextColor(Color.BLACK);
+
+            // Thay đổi text color
+            Legend legend = pieChart.getLegend();
+            legend.setTextColor(Color.BLACK);
+
+        }
+    }
+
+    void calculateTaskInMonth()
+    {
+//        String day = "1" + " " + monthYearFromDate(selectedDate);
+//        day = convertToFormattedDate(day);
+//        if(myCardList.size()!=0)
+//        {
+//            Toast.makeText(getContext(), myCardList.size(), Toast.LENGTH_SHORT).show();
+//
+//
+//            for (Card card : myCardList)
+//            {
+//                if(compareDay(day,card.getCreated_at()))
+//                {
+//                    //Toast.makeText(getContext(), card.getStatus(), Toast.LENGTH_SHORT).show();
+//                    //if(card.getStatus().equals())
+//                }
+//            }
+    }
+
+
+
+
+    public boolean compareDay(String date1, String date2) {
+        // Định dạng ngày vào
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        // Parse ngày từ chuỗi đầu vào
+        LocalDate localDate1 = LocalDate.parse(date1, formatter);
+        LocalDate localDate2 = LocalDate.parse(date2, formatter);
+
+        // So sánh tháng và năm
+        return localDate1.getMonthValue() == localDate2.getMonthValue() &&
+                localDate1.getYear() == localDate2.getYear();
+    }
+
+
+
+
 }
+
+
+
+
+
+
