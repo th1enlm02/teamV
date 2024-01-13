@@ -1,21 +1,34 @@
 package com.example.teamv.fragment;
 
+import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
+
+import static com.google.common.io.Files.getFileExtension;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
+import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
@@ -25,6 +38,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.MimeTypeMap;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -35,8 +49,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.teamv.R;
+import com.example.teamv.activity.CardActivity;
 import com.example.teamv.activity.LoginActivity;
 import com.example.teamv.my_interface.UserDataCallback;
+import com.example.teamv.object.AttachedFile;
+import com.example.teamv.object.Card;
 import com.example.teamv.object.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -48,8 +65,20 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.IOException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class AccountFragment extends Fragment implements UserDataCallback {
@@ -65,7 +94,7 @@ public class AccountFragment extends Fragment implements UserDataCallback {
     private User myInfor;
     private String password;
     private String email;
-
+    private Bitmap avatarBitmap;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -201,6 +230,12 @@ public class AccountFragment extends Fragment implements UserDataCallback {
                 openDialogEditProfile();
             }
         });
+        ivAvatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectImageFromDevice();
+            }
+        });
         return view;
     }
     private void openDialogEditProfile() {
@@ -228,9 +263,27 @@ public class AccountFragment extends Fragment implements UserDataCallback {
         RadioGroup radioGroupGender = (RadioGroup) dialog.findViewById(R.id.radio_group_gender);
         RadioButton radioButtonMale = (RadioButton) dialog.findViewById(R.id.radio_btn_male);
         RadioButton radioButtonFemale = (RadioButton) dialog.findViewById(R.id.radio_btn_female);
+        ImageView ivAvatarDialog = (ImageView) dialog.findViewById(R.id.iv_avatar);
 
         tvEmail.setText(myInfor.getEmail().toString());
-        int selectedRadioButtonId = radioGroupGender.getCheckedRadioButtonId();
+        if (myInfor.getAvatar() != null) {
+            ivAvatarDialog.setImageBitmap(avatarBitmap);
+        } else {
+            ivAvatarDialog.setImageResource(R.drawable.im_no_profile);
+        }
+
+        String[] gender = {""};
+
+        radioGroupGender.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+                if (checkedId == radioButtonMale.getId()) {
+                    gender[0] = "Nam";
+                } else if (checkedId == radioButtonFemale.getId()) {
+                    gender[0] = "Nữ";
+                }
+            }
+        });
 
         cvCancelEditProfile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -249,23 +302,191 @@ public class AccountFragment extends Fragment implements UserDataCallback {
                     }
                 } else {
                     String fullname = etFullname.getText().toString();
-                    String gender = "";
                     int age = Integer.parseInt(etAge.getText().toString());
-                    if (selectedRadioButtonId != -1) {
-                        if (selectedRadioButtonId == radioButtonMale.getId()) {
-                            gender = "Nam";
-                        } else if (selectedRadioButtonId == radioButtonFemale.getId()) {
-                            gender = "Nữ";
-                        }
-                    }
                     tvFullname.setText(fullname);
                     tvAge.setText(age + " tuổi");
-                    updateUserInfor(fullname, gender, age);
+                    tvGender.setText(gender[0]);
+                    updateUserInfor(fullname, gender[0], age);
                     dialog.dismiss();
                 }
             }
         });
         dialog.show();
+    }
+    private void selectImageFromDevice() {
+        Intent intent = new Intent();
+        intent.setType("image/*"); // Chỉ chọn ảnh
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Chọn ảnh"), 100);
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri uri = data.getData();
+
+            String fileFormat = "image";
+            String fileName = getFileName(uri);
+            String fileCreatedAt = getCurrentTime();
+            double d = getFileSize(uri);
+            String fileSize = String.valueOf(roundToTwoDecimalPlaces(d));
+
+            String fileExtension = getFileExtension(uri);
+
+            uploadImageToStorage(data.getData(), fileFormat, fileExtension, fileName, fileCreatedAt, fileSize);
+        }
+    }
+    private String getCurrentTime() {
+        Date currentTime = new Date();
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+        return new String(simpleDateFormat.format(currentTime));
+    }
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContext().getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        String extension;
+
+        // Kiểm tra xem Uri có scheme là "content" không
+        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            extension = mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+        } else {
+            // Lấy đuôi từ đường dẫn của Uri nếu không phải là "content" (ví dụ: "file" scheme)
+            extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+        }
+        return extension;
+    }
+    // Assuming 'uri' is the Uri of the file you want to get the size
+    public double getFileSize(Uri uri) {
+        long fileSize = 0;
+        Cursor cursor = null;
+        try {
+            String[] projection = {MediaStore.MediaColumns.SIZE};
+            cursor = getContext().getContentResolver().query(uri, projection, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int sizeColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE);
+                fileSize = cursor.getLong(sizeColumnIndex);
+            }
+        } catch (Exception e) {
+            Log.e("GetFileSize", e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return (double) fileSize / (1024 * 1024);
+    }
+    private double roundToTwoDecimalPlaces(double number) {
+        // Tạo mẫu để làm tròn đến hai chữ số thập phân
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.HALF_UP); // Điều chỉnh cách làm tròn (có thể thay đổi nếu cần)
+
+        // Sử dụng DecimalFormat để làm tròn số
+        return Double.parseDouble(df.format(number).replace(",", "."));
+    }
+    @SuppressLint("Range")
+    private String getFileName(Uri uri) {
+        // get file name
+        String uriString = uri.toString();
+        File myFile = new File(uriString);
+
+        String attachedFilePath = myFile.getAbsolutePath();
+        String attachedFileName = "";
+
+        if (uriString.startsWith("content://")) {
+            Cursor cursor = null;
+            try {
+                cursor = getContext().getContentResolver().query(uri, null, null, null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    attachedFileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                cursor.close();
+            }
+        } else if (uriString.startsWith("file://")) {
+            attachedFileName = myFile.getName();
+        }
+        return attachedFileName;
+    }
+    private void retrieveImageFromStorage(AttachedFile avatar) {
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+        final StorageReference reference = storageReference.child("Avatar/" + userID + "/" + avatar.getCreated_at() + "." + avatar.getExtension());
+
+        try {
+            File localFile = File.createTempFile("tempFile", avatar.getExtension());
+            reference.getFile(localFile)
+                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            Bitmap bitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                            avatarBitmap = bitmap;
+                            ivAvatar.setImageBitmap(avatarBitmap);
+
+                            Log.d("RetrieveAvatar", "Successful");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("RetrieveAvatar", "Failed");
+                        }
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private void uploadImageToStorage (Uri data, String fileFormat, String fileExtension, String fileName, String fileCreatedAt, String fileSize) {
+        final ProgressDialog progressDialog = new ProgressDialog(getContext());
+        progressDialog.setTitle("Đang tải ảnh...");
+        progressDialog.show();
+
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+        final StorageReference reference = storageReference.child("Avatar/" + userID + "/" + fileCreatedAt + "." + fileExtension);
+
+        reference.putFile(data)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                        while (!uriTask.isComplete());
+                        Uri uri = uriTask.getResult();
+                        AttachedFile attachedFile = new AttachedFile(fileName, fileCreatedAt, fileSize, uri.toString(), fileFormat, fileExtension);
+                        myInfor.setAvatar(attachedFile);
+                        updateAvatarToFirestore(attachedFile);
+                        retrieveImageFromStorage(attachedFile);
+                        Toast.makeText(getActivity(), "Tải ảnh dại diện thành công!", Toast.LENGTH_SHORT).show();
+                        progressDialog.dismiss();
+                    }
+                })
+                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+                        float percentUploading = (100 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                        progressDialog.setMessage((int) percentUploading + "%");
+                    }
+                });
+    }
+    private void updateAvatarToFirestore(AttachedFile avatar) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        DocumentReference documentReference = firestore.collection("User").document(userID);
+
+        documentReference
+                .update(
+                        "avatar", avatar
+                )
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.i("SuccessUpdateAvatar", "Updated avatar successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("UpdateAvatarFailed", e.getMessage());
+                    }
+                });
     }
     private void updateUserInfor(String fullname, String gender, int age){
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
@@ -326,10 +547,16 @@ public class AccountFragment extends Fragment implements UserDataCallback {
         String email = myInfor.getEmail();
         String gender = myInfor.getGender();
         int age = myInfor.getAge();
-        int resouce_id = myInfor.getResource_id();
+        AttachedFile avatar = myInfor.getAvatar();
 
         tvFullname.setText(fullname);
         tvEmail.setText(email);
+
+        if (avatar != null) {
+            retrieveImageFromStorage(avatar);
+        } else {
+            ivAvatar.setImageResource(R.drawable.im_no_profile);
+        }
         if (!gender.equals("")) {
             tvGender.setText(gender);
         } else {
@@ -341,9 +568,6 @@ public class AccountFragment extends Fragment implements UserDataCallback {
         } else {
             tvAge.setText("");
             tvAge.setHint("Chưa có thông tin");
-        }
-        if (resouce_id != 0) {
-            ivAvatar.setImageResource(resouce_id);
         }
     }
     private void getMyInfor(UserDataCallback callback) {

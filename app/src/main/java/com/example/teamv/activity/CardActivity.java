@@ -441,7 +441,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         String boardID = myCard.getBoard_id();
         String userID = getUserIDBySplitingBoardID(boardID);
-        final StorageReference reference = attachedFileStorageReference.child(userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + fileCreatedAt + "." + fileExtension);
+        final StorageReference reference = attachedFileStorageReference.child("File/" + userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + fileCreatedAt + "." + fileExtension);
 
         reference.putFile(data)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -1087,7 +1087,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         String fileFormat = attachedFile.getFormat();
         String fileCreatedAt = attachedFile.getCreated_at();
         String fileExtension = attachedFile.getExtension();
-        String filePath = userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + fileCreatedAt + "." + fileExtension;
+        String filePath = "File/" + userID + "/" + boardID + "/" + myCard.getCard_id() + "/attached_files/" + fileFormat + "/" + fileCreatedAt + "." + fileExtension;
         return filePath;
     }
     private void deleteAttachedFileFromStorage(int index) {

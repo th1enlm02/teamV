@@ -7,17 +7,25 @@ public class User {
     private String password;
     private String gender;
     private int age;
-    private int resource_id;
+    private AttachedFile avatar;
     public User(){};
 
-    public User(String user_id, String fullname, String email, String password, String gender, int age, int resource_id) {
+    public User(String user_id, String fullname, String email, String password, String gender, int age, AttachedFile avatar) {
         this.user_id = user_id;
         this.fullname = fullname;
         this.email = email;
         this.password = password;
         this.gender = gender;
         this.age = age;
-        this.resource_id = resource_id;
+        this.avatar = avatar;
+    }
+
+    public AttachedFile getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(AttachedFile avatar) {
+        this.avatar = avatar;
     }
 
     public String getGender() {
@@ -35,15 +43,6 @@ public class User {
     public void setAge(int age) {
         this.age = age;
     }
-
-    public int getResource_id() {
-        return resource_id;
-    }
-
-    public void setResource_id(int resource_id) {
-        this.resource_id = resource_id;
-    }
-
     public String getUser_id() {
         return user_id;
     }

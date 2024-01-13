@@ -504,7 +504,7 @@ public class StatusListActivity extends AppCompatActivity implements SwipeRefres
 
         for (AttachedFile attachedFile : attachedFiles) {
             String fileFormat = attachedFile.getFormat();
-            String folderPath = userID + "/" + boardID + "/" + card.getCard_id() + "/attached_files/" + fileFormat;
+            String folderPath = "File/" + userID + "/" + boardID + "/" + card.getCard_id() + "/attached_files/" + fileFormat;
 
             deleteFilesInFolder(folderPath);
         }

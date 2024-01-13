@@ -38,8 +38,6 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvRegister;
     private Button btnLogin;
     private ProgressBar progressBar;
-
-
     // toan
     private TextView forgetpass;
     //Chuthien// Chuc Thien
@@ -50,10 +48,6 @@ public class LoginActivity extends AppCompatActivity {
     private String PASS_KEY = "PASS";
     private String LOGIN_KEY = "LOGIN";
     private Boolean isLogin; // Biến để kiểm tra đã đăng nhập hay chưa
-    //
-
-
-    // toan
     private static final String TAG = "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                builder.setTitle("Reset Password");
+                builder.setTitle("Đặt lại mật khẩu");
 
                 // Inflate layout
                 View view = LayoutInflater.from(LoginActivity.this).inflate(R.layout.dialog_forgotpass, null);
@@ -97,10 +91,10 @@ public class LoginActivity extends AppCompatActivity {
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()) {
                                             // Email đã được gửi đi, thông báo cho người dùng.
-                                            Toast.makeText(LoginActivity.this, "Email đã được gửi để đặt lại mật khẩu.", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(LoginActivity.this, "Email đã được gửi để đặt lại mật khẩu", Toast.LENGTH_SHORT).show();
                                         } else {
                                             // Có lỗi xảy ra, thông báo cho người dùng.
-                                            Toast.makeText(LoginActivity.this, "Có lỗi xảy ra. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+                                            Log.e("ResetPassword", "Failed");
                                         }
                                     }
                                 });
@@ -287,9 +281,5 @@ public class LoginActivity extends AppCompatActivity {
                 .getString(PASS_KEY, ""));
         if(sharedPreferences.getBoolean(LOGIN_KEY,false))
             loginUser(etEmail.getText().toString(),etPassword.getText().toString());
-
     }
-
-
-
 }
