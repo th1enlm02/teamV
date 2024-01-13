@@ -570,6 +570,8 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
             // Hiển thị danh sách trong ListView
             updateListView(list);
         }
+        else
+            ll_task.setVisibility(View.GONE);
 
 
 
@@ -603,7 +605,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     }
     public static String convertToFormattedDate(String inputDate) {
         // Định dạng ngày vào
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault());
 
         // Định dạng ngày ra
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
