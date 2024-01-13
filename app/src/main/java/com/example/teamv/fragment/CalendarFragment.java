@@ -1,5 +1,6 @@
 package com.example.teamv.fragment;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -12,15 +13,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.teamv.R;
+import com.example.teamv.activity.StatusListActivity;
 import com.example.teamv.adapter.CalendarAdapter;
 import com.example.teamv.my_interface.CardDataCallback;
+import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,6 +56,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     private ArrayList<LocalDate> deadlines = new ArrayList<>(); // mảng chứa thời gian có deadline
     private View view;
     private ImageView iv_nextmonth, iv_previousmonth;
+    LinearLayout ll_task;
     TextView textView;
     ListView lv_item_task_in_calendar;
 
@@ -78,7 +84,16 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         readAllMyCard(this);
         // Khởi tạo ArrayAdapter
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1);
+
         lv_item_task_in_calendar.setAdapter(adapter);
+
+        lv_item_task_in_calendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //
+                //onClickBoardItemGoToStatusList();
+            }
+        });
 
 
 
@@ -172,6 +187,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         iv_nextmonth = (ImageView) view.findViewById(R.id.iv_nextmonth);
         iv_previousmonth=(ImageView) view.findViewById(R.id.iv_previousmonth);
         lv_item_task_in_calendar =(ListView) view.findViewById(R.id.lv_task_in_calendar);
+        ll_task =(LinearLayout) view.findViewById(R.id.ll_task);
     }
 
     private void initCard() {
@@ -532,24 +548,29 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 //            s="Không có deadline vào ngày này";
 //        }
 //        textView.setText(s);
-        List<String> list = new ArrayList<>();
-        int flag = 0;
-        String day = dayText + " " + monthYearFromDate(selectedDate);
-        day = convertToFormattedDate(day);
+        if (dayText!="")
+        {
+            ll_task.setVisibility(View.VISIBLE);
+            List<String> list = new ArrayList<>();
+            int flag = 0;
+            String day = dayText + " " + monthYearFromDate(selectedDate);
+            day = convertToFormattedDate(day);
 
-        for (Card card : myCardList) {
-            String deadline = card.getDeadline_at();
-            if (day.contains(deadline)) {
-                flag = 1;
-                list.add(card.getName());
+            for (Card card : myCardList) {
+                String deadline = card.getDeadline_at();
+                if (day.contains(deadline)) {
+                    flag = 1;
+                    list.add(card.getName());
+                }
             }
-        }
-        if (flag == 0) {
-            list.add("Không có deadline vào ngày này") ;
+            if (flag == 0) {
+                list.add("Không có deadline vào ngày này") ;
+            }
+
+            // Hiển thị danh sách trong ListView
+            updateListView(list);
         }
 
-        // Hiển thị danh sách trong ListView
-        updateListView(list);
 
 
 
@@ -592,6 +613,13 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
         // Format ngày theo định dạng mong muốn
         return date.format(outputFormatter);
+    }
+    private void onClickBoardItemGoToStatusList(Board board){
+        Intent intent = new Intent(getContext(), StatusListActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("object_board", board);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 
 
