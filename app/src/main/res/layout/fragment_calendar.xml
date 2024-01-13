@@ -163,5 +163,6 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="292dp"
-        android:text="TextView" />
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"/>
 </LinearLayout>

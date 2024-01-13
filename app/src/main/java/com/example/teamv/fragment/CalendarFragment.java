@@ -35,6 +35,7 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener, CardDataCallback {
@@ -164,18 +165,15 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         iv_previousmonth=(ImageView) view.findViewById(R.id.iv_previousmonth);
     }
 
-    private void initCard()
-    {
-
-
+    private void initCard() {
         // Card 1
         Card card1 = new Card(
                 "1",
                 "Board1",
                 "User1",
-                "Card 1",
+                "Làm bài tập",
                 1,
-                "Description 1",
+                "Mô tả công việc 1",
                 "2024-01-20",
                 null, // Assume to_do_list is null for simplicity
                 null, // Assume attached_file_list is null for simplicity
@@ -191,9 +189,9 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                 "2",
                 "Board1",
                 "User2",
-                "Card 2",
+                "Học bài",
                 2,
-                "Description 2",
+                "Mô tả công việc 2",
                 "2024-01-25",
                 null, // Assume to_do_list is null for simplicity
                 null, // Assume attached_file_list is null for simplicity
@@ -203,7 +201,187 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                 "Completed"
         );
         myCardList.add(card2);
+
+        // Thêm 8 công việc khác
+        // Card 3
+        Card card3 = new Card(
+                "3",
+                "Board1",
+                "User3",
+                "Thực hành toán",
+                3,
+                "Mô tả công việc 3",
+                "2024-01-10",
+                null,
+                null,
+                "2024-01-05",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card3);
+
+        // Card 4
+        Card card4 = new Card(
+                "4",
+                "Board1",
+                "User4",
+                "Viết báo cáo",
+                4,
+                "Mô tả công việc 4",
+                "2024-01-15",
+                null,
+                null,
+                "2024-01-11",
+                true,
+                false,
+                "Completed"
+        );
+        myCardList.add(card4);
+
+        // Card 5
+        Card card5 = new Card(
+                "5",
+                "Board1",
+                "User5",
+                "Lập kế hoạch học tập",
+                5,
+                "Mô tả công việc 5",
+                "2024-02-14",
+                null,
+                null,
+                "2024-02-18",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card5);
+
+        // Card 6
+        Card card6 = new Card(
+                "6",
+                "Board1",
+                "User6",
+                "Thiết kế đồ án",
+                6,
+                "Mô tả công việc 6",
+                "2023-01-05",
+                null,
+                null,
+                "2023-01-05",
+                true,
+                false,
+                "Completed"
+        );
+        myCardList.add(card6);
+
+        // Card 7
+        Card card7 = new Card(
+                "7",
+                "Board1",
+                "User7",
+                "Dựng phim ngắn",
+                7,
+                "Mô tả công việc 7",
+                "2024-01-11",
+                null,
+                null,
+                "2024-01-12",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card7);
+
+        // Card 8
+        Card card8 = new Card(
+                "8",
+                "Board1",
+                "User8",
+                "Sửa ảnh",
+                8,
+                "Mô tả công việc 8",
+                "2024-02-18",
+                null,
+                null,
+                "2023-01-05",
+                true,
+                false,
+                "Completed"
+        );
+        myCardList.add(card8);
+
+        // Card 9
+        Card card9 = new Card(
+                "9",
+                "Board1",
+                "User9",
+                "Chơi guitar",
+                9,
+                "Mô tả công việc 9",
+                "2024-01-05",
+                null,
+                null,
+                "2024-01-11",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card9);
+
+        // Card 10
+        Card card10 = new Card(
+                "10",
+                "Board1",
+                "User10",
+                "Viết blog",
+                10,
+                "Mô tả công việc 10",
+                "2024-01-12",
+                null,
+                null,
+                "2024-02-18",
+                true,
+                false,
+                "Completed"
+        );
+        myCardList.add(card10);
+        // Card 11
+        Card card11 = new Card(
+                "11",
+                "Board11",
+                "User11",
+                "Đi chơi cùng bạn bè",
+                1,
+                "Mô tả công việc 1",
+                "2024-01-20",
+                null, // Assume to_do_list is null for simplicity
+                null, // Assume attached_file_list is null for simplicity
+                "2024-01-13",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card11);
+        // Card 12
+        Card card12 = new Card(
+                "12",
+                "Board12",
+                "User12",
+                "Tập viết CV",
+                1,
+                "Mô tả công việc 1",
+                "2024-01-20",
+                null, // Assume to_do_list is null for simplicity
+                null, // Assume attached_file_list is null for simplicity
+                "2024-01-13",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card12);
     }
+
 
 
 
@@ -292,7 +470,29 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     @Override
     public void onItemClick(View view, int position, String dayText)
     {
-        //view.setBackgroundColor(getResources().getColor(R.color.red));
+        String s="Danh sách các deadline vào ngày này:\n";
+        int flag=0;
+        String day = dayText + " " + monthYearFromDate(selectedDate);
+        day = convertToFormattedDate(day);
+
+        for (Card card : myCardList) {
+            String deadline = card.getDeadline_at();
+            if(day.contains(deadline))
+            {
+                flag=1;
+                s+=card.getName()+"\n";
+            }
+        }
+        if(flag==0)
+        {
+            s="Không có deadline vào ngày này";
+        }
+        textView.setText(s);
+
+
+
+
+
 
     }
     // Hàm để chuyển đổi định dạng ngày của các card
@@ -311,6 +511,19 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         LocalDate date = LocalDate.parse(inputDate, inputFormatter);
+        return date.format(outputFormatter);
+    }
+    public static String convertToFormattedDate(String inputDate) {
+        // Định dạng ngày vào
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
+
+        // Định dạng ngày ra
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        // Parse ngày từ chuỗi đầu vào
+        LocalDate date = LocalDate.parse(inputDate, inputFormatter);
+
+        // Format ngày theo định dạng mong muốn
         return date.format(outputFormatter);
     }
 
