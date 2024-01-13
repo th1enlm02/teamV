@@ -78,12 +78,15 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     LinearLayout ll_task;
     TextView textView;
     ListView lv_item_task_in_calendar;
+    String check="0";
+    //biến để tối ưu hiển thị click vào lịch
+
 
     //Các công việc
     int unschedule = 0;
     int completion=0;
     int overdue=0;
-    int onprogress=0;
+    int inprocess=0;
 
     private ArrayAdapter<String> adapter; // adapter mặc định cho item task khi click vào ngày
     // firebase
@@ -492,7 +495,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         rv_Calendar.setLayoutManager(layoutManager);
         rv_Calendar.setAdapter(adapterCalendar);
 
-        //calculateTaskInMonth();
+        calculateTaskInMonth();
         updateCharts();
 
     }
@@ -588,10 +591,28 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 //            s="Không có deadline vào ngày này";
 //        }
 //        textView.setText(s);
-        if(ll_task.getVisibility()==View.GONE)
-            ll_task.setVisibility(View.VISIBLE);
+
+        if(!dayText.equals(""))
+        {
+            if(dayText.equals(check))
+            {
+                ll_task.setVisibility(View.GONE);
+                check="0";
+            }
+            else {
+                ll_task.setVisibility(View.VISIBLE);
+                check=dayText;
+            }
+
+        }
         else
+        {
             ll_task.setVisibility(View.GONE);
+            check=dayText;
+        }
+
+
+
         if (dayText!="")
         {
             List<String> list = new ArrayList<>();
@@ -681,10 +702,10 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
 
         // Get values from EditTexts
-        String overDueJobsStr = "2";
-        String completedJobsStr = "3";
-        String unscheduledJobStr = "4";
-        String inProcessJobStr = "5";
+        String overDueJobsStr = overdue+"";
+        String completedJobsStr = completion+"";
+        String unscheduledJobStr = unschedule+"";
+        String inProcessJobStr = inprocess+"";
 
         if (!overDueJobsStr.isEmpty() && !completedJobsStr.isEmpty() && !unscheduledJobStr.isEmpty() && !inProcessJobStr.isEmpty()) {
             float overDueJobs = Float.parseFloat(overDueJobsStr);
@@ -738,24 +759,32 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         }
     }
 
-    void calculateTaskInMonth()
-    {
-//        String day = "1" + " " + monthYearFromDate(selectedDate);
-//        day = convertToFormattedDate(day);
-//        if(myCardList.size()!=0)
-//        {
-//            Toast.makeText(getContext(), myCardList.size(), Toast.LENGTH_SHORT).show();
-//
-//
-//            for (Card card : myCardList)
-//            {
-//                if(compareDay(day,card.getCreated_at()))
-//                {
-//                    //Toast.makeText(getContext(), card.getStatus(), Toast.LENGTH_SHORT).show();
-//                    //if(card.getStatus().equals())
-//                }
-//            }
-    }
+    void calculateTaskInMonth() {
+        overdue=0;
+        inprocess=0;
+        completion=0;
+        unschedule=0;
+        String day = "1" + " " + monthYearFromDate(selectedDate);
+        day = convertToFormattedDate(day);
+        if (myCardList.size() != 0) {
+            for (Card card : myCardList) {
+                if (compareDay(day, card.getCreated_at())) {
+
+                    if(card.getStatus().equals("Overdue"))
+                        overdue++;
+                    else if(card.getStatus().equals("In process"))
+                        inprocess++;
+                    else if(card.getStatus().equals("Completed"))
+                        completion++;
+                    else
+                        unschedule++;
+
+
+                }
+            }
+        }
+
+        }
 
 
 
