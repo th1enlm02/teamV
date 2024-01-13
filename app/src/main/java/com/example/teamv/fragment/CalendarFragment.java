@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -24,9 +25,11 @@ import android.widget.Toast;
 import com.example.teamv.R;
 import com.example.teamv.activity.StatusListActivity;
 import com.example.teamv.adapter.CalendarAdapter;
+import com.example.teamv.my_interface.AllCardDataCallback;
 import com.example.teamv.my_interface.CardDataCallback;
 import com.example.teamv.object.Board;
 import com.example.teamv.object.Card;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -45,8 +48,11 @@ import java.util.List;
 import java.util.Locale;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener, CardDataCallback {
+public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener, AllCardDataCallback {
     private List<Card> myCardList = new ArrayList<>();
+    private List<Card> myCardListForDashBoard = new ArrayList<>();
+
+
     private TextView tv_MonthYear; //tv để hiện thông tin tháng năm
     private RecyclerView rv_Calendar;
     private LocalDate selectedDate; // ngày hiện tại
@@ -61,10 +67,8 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     ListView lv_item_task_in_calendar;
 
     private ArrayAdapter<String> adapter; // adapter mặc định cho item task khi click vào ngày
-
-
     // firebase
-    private String userID = getUserID();
+    private String userID;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -72,20 +76,19 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
 
         findViewByIds();
-        initCard();
-        getFormattedCardDates();
-        initDeadlines();
+       // initCard();
+       // getFormattedCardDates();
+
         selectedDate = LocalDate.now();
         setMonthView();
 
-
-        // get all cards data
-        // sau hàm này là có thể sử dụng list card được lấy về
-        readAllMyCard(this);
         // Khởi tạo ArrayAdapter
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1);
 
         lv_item_task_in_calendar.setAdapter(adapter);
+
+
+
 
         lv_item_task_in_calendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -94,9 +97,6 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                 //onClickBoardItemGoToStatusList();
             }
         });
-
-
-
         iv_previousmonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,6 +113,15 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         });
         return view;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // get all cards data
+        // sau hàm này là có thể sử dụng list card được lấy về
+        readAllMyCard(this);
+    }
+
     private String getUserID() {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
@@ -124,14 +133,15 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         }
         return userID;
     }
-    private void readAllMyCard(CardDataCallback callback) {
+    private void readAllMyCard(AllCardDataCallback callback) {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         CollectionReference collectionReference = firestore.collection("Card");
+        userID = getUserID();
 
-        collectionReference
-                .whereEqualTo("user_id", userID)
-                .orderBy("created_at", Query.Direction.DESCENDING)
-                .get()
+        Query query = collectionReference
+                .whereEqualTo("user_id", userID);
+
+        query.get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -143,19 +153,25 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                                 Card myCard = documentSnapshot.toObject(Card.class);
                                 tempList.add(myCard);
                             }
-                            callback.onDataReceived(tempList, "Calendar");
+                            callback.onDataReceived(tempList);
                         }
                         Log.d("GetAllCards", "Read all cards successfully");
                     }
                 });
     }
     @Override
-    public void onDataReceived(List<Card> cards, String identifier) {
-        if (identifier.equals("Calendar")) {
-            this.myCardList.clear();
-            this.myCardList.addAll(cards);
-        }
+    public void onDataReceived(List<Card> cards) {
+        this.myCardList.clear();
+        this.myCardList.addAll(cards);
+        myCardListForDashBoard = myCardList;
+        getFormattedCardDates();
+        initDeadlines();
+        setMonthView();
+
+
+
     }
+
     void initDeadlines() {
         // Tạo mảng các deadline
 
@@ -173,6 +189,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
 
         for (Card card : myCardList) {
+
             LocalDate deadlineDate = LocalDate.parse(card.getDeadline_at(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             deadlines.add(deadlineDate);
         }
@@ -587,17 +604,18 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     }
     // Hàm để chuyển đổi định dạng ngày của các card
     private void getFormattedCardDates() {
-        List<String> formattedDates = new ArrayList<>();
 
         for (Card card : myCardList) {
-            card.setDeadline_at(formatDate(card.getDeadline_at()));
+            String[] parts = card.getDeadline_at().split(" ");
+            card.setDeadline_at(formatDate(parts[0]));
         }
+
 
 
     }
     private String formatDate(String inputDate) {
         // Chuyển định dạng từ "yyyy-MM-dd" sang định dạng "dd/MM/yyyy"
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         LocalDate date = LocalDate.parse(inputDate, inputFormatter);
@@ -623,6 +641,4 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         intent.putExtras(bundle);
         startActivity(intent);
     }
-
-
 }
