@@ -43,11 +43,11 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     />
-                <TextView
-                    android:id="@+id/tv_fullname"
-                    android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/et_fullname"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Full name"
+                    android:hint="Tên đầy đủ"
                     android:textSize="16dp"
                     android:textColor="@color/black"
                     android:layout_toRightOf="@id/iv_fullname"
@@ -82,7 +82,7 @@
                     />
                 <TextView
                     android:id="@+id/tv_email"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Email"
                     android:textSize="16dp"
@@ -91,6 +91,7 @@
                     android:layout_centerVertical="true"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
+                    android:enabled="false"
                     />
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
@@ -115,20 +116,51 @@
                     android:layout_height="30dp"
                     android:src="@drawable/ic_gender"
                     android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
+                    android:layout_alignParentTop="true"
                     />
                 <TextView
                     android:id="@+id/tv_gender"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gender"
+                    android:text="Giới tính"
                     android:textSize="16dp"
+                    android:textStyle="bold"
                     android:textColor="@color/black"
                     android:layout_toRightOf="@id/iv_gender"
-                    android:layout_centerVertical="true"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
                     />
+                <RadioGroup
+                    android:id="@+id/radio_group_gender"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_below="@id/iv_gender"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center_horizontal"
+                    >
+                    <RadioButton
+                        android:id="@+id/radio_btn_male"
+                        android:background="@drawable/custom_radio_selector"
+                        android:button="@color/white"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:textAlignment="center"
+                        android:text="Nam"
+                        android:drawableTop="@drawable/ic_male"
+                        />
+                    <RadioButton
+                        android:id="@+id/radio_btn_female"
+                        android:background="@drawable/custom_radio_selector"
+                        android:layout_marginStart="50dp"
+                        android:button="@color/white"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:textAlignment="center"
+                        android:text="Nữ"
+                        android:drawableTop="@drawable/ic_female"
+                        />
+                </RadioGroup>
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
@@ -154,11 +186,11 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     />
-                <TextView
-                    android:id="@+id/tv_age"
-                    android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/et_age"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Age"
+                    android:hint="Số tuổi"
                     android:textSize="16dp"
                     android:textColor="@color/black"
                     android:layout_toRightOf="@id/iv_age"
@@ -169,7 +201,7 @@
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
-            android:id="@+id/cv_edit_profile"
+            android:id="@+id/cv_edit_profile_save"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/cv_age"
@@ -177,75 +209,38 @@
             android:layout_marginEnd="20dp"
             android:layout_marginTop="10dp"
             app:cardElevation="10dp"
-            >
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/custom_yellow"
-                android:padding="10dp"
-                >
-                <ImageView
-                    android:id="@+id/iv_edit_profile"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/ic_edit_profile"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    />
-                <TextView
-                    android:id="@+id/tv_edit_profile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Chỉnh sửa thông tin cá nhân"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"
-                    android:layout_centerInParent="true"
-                    />
-            </RelativeLayout>
-        </androidx.cardview.widget.CardView>
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cv_change_password"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/cv_edit_profile"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginTop="10dp"
-            app:cardElevation="10dp"
             app:cardCornerRadius="20dp"
             >
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/blue4"
+                android:background="@color/custom_green"
                 android:padding="10dp"
                 >
                 <ImageView
-                    android:id="@+id/iv_change_password"
+                    android:id="@+id/iv_edit_profile_save"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:src="@drawable/ic_change_password"
+                    android:src="@drawable/ic_save"
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     />
                 <TextView
-                    android:id="@+id/tv_change_password"
+                    android:id="@+id/tv_edit_profile_save"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Đổi mật khẩu"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
+                    android:layout_centerInParent="true"
+                    android:text="Lưu thay đổi"
                     android:textColor="@color/white"
-                    android:layout_centerInParent="true"
-                    />
+                    android:textSize="16dp"
+                    android:textStyle="bold" />
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
-            android:id="@+id/cv_logout"
+            android:id="@+id/cv_edit_profile_cancel"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/cv_change_password"
+            android:layout_below="@id/cv_edit_profile_save"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
             android:layout_marginTop="10dp"
@@ -255,24 +250,15 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/blue4"
+                android:background="@color/custom_red"
                 android:padding="10dp"
                 >
-                <ImageView
-                    android:id="@+id/iv_logout"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/ic_logout"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    />
-
                 <TextView
-                    android:id="@+id/tv_logout"
+                    android:id="@+id/tv_edit_profile_cancel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="Đăng xuất"
+                    android:text="Huỷ"
                     android:textColor="@color/white"
                     android:textSize="16dp"
                     android:textStyle="bold" />

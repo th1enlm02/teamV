@@ -196,7 +196,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                                     // Khởi tạo thông tin user vừa đăng ký lưu vào database
                                     String user_id = firebaseUser.getUid();
-                                    User user = new User(user_id, fullname, email, password);
+                                    User user = new User(user_id, fullname, email, password, "", -1, 0);
 
                                     firestore.collection("User").document(user_id).set(user)
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
