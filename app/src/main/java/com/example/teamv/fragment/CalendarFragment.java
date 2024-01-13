@@ -12,7 +12,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +52,10 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     private View view;
     private ImageView iv_nextmonth, iv_previousmonth;
     TextView textView;
+    ListView lv_item_task_in_calendar;
+
+    private ArrayAdapter<String> adapter; // adapter mặc định cho item task khi click vào ngày
+
 
     // firebase
     private String userID = getUserID();
@@ -60,7 +66,6 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
 
         findViewByIds();
-        textView =(TextView)view.findViewById(R.id.textView);
         initCard();
         getFormattedCardDates();
         initDeadlines();
@@ -71,6 +76,9 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         // get all cards data
         // sau hàm này là có thể sử dụng list card được lấy về
         readAllMyCard(this);
+        // Khởi tạo ArrayAdapter
+        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1);
+        lv_item_task_in_calendar.setAdapter(adapter);
 
 
 
@@ -163,6 +171,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         tv_MonthYear = (TextView) view.findViewById(R.id.tv_MonthYear);
         iv_nextmonth = (ImageView) view.findViewById(R.id.iv_nextmonth);
         iv_previousmonth=(ImageView) view.findViewById(R.id.iv_previousmonth);
+        lv_item_task_in_calendar =(ListView) view.findViewById(R.id.lv_task_in_calendar);
     }
 
     private void initCard() {
@@ -380,6 +389,41 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
                 "In Progress"
         );
         myCardList.add(card12);
+        // Card 13
+        Card card13 = new Card(
+                "13",
+                "Board13",
+                "User13",
+                "Tập viết tiếng anh",
+                1,
+                "Mô tả công việc 1",
+                "2024-01-20",
+                null, // Assume to_do_list is null for simplicity
+                null, // Assume attached_file_list is null for simplicity
+                "2024-01-13",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card13);
+        // Card 12
+        Card card14 = new Card(
+                "14",
+                "Board14",
+                "User14",
+                "Nghe tiếng anh",
+                1,
+                "Mô tả công việc 1",
+                "2024-01-20",
+                null, // Assume to_do_list is null for simplicity
+                null, // Assume attached_file_list is null for simplicity
+                "2024-01-13",
+                false,
+                true,
+                "In Progress"
+        );
+        myCardList.add(card14);
+
     }
 
 
@@ -470,30 +514,53 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     @Override
     public void onItemClick(View view, int position, String dayText)
     {
-        String s="Danh sách các deadline vào ngày này:\n";
-        int flag=0;
+//        String s="Danh sách các deadline vào ngày này:\n";
+//        int flag=0;
+//        String day = dayText + " " + monthYearFromDate(selectedDate);
+//        day = convertToFormattedDate(day);
+//
+//        for (Card card : myCardList) {
+//            String deadline = card.getDeadline_at();
+//            if(day.contains(deadline))
+//            {
+//                flag=1;
+//                s+=card.getName()+"\n";
+//            }
+//        }
+//        if(flag==0)
+//        {
+//            s="Không có deadline vào ngày này";
+//        }
+//        textView.setText(s);
+        List<String> list = new ArrayList<>();
+        int flag = 0;
         String day = dayText + " " + monthYearFromDate(selectedDate);
         day = convertToFormattedDate(day);
 
         for (Card card : myCardList) {
             String deadline = card.getDeadline_at();
-            if(day.contains(deadline))
-            {
-                flag=1;
-                s+=card.getName()+"\n";
+            if (day.contains(deadline)) {
+                flag = 1;
+                list.add(card.getName());
             }
         }
-        if(flag==0)
-        {
-            s="Không có deadline vào ngày này";
+        if (flag == 0) {
+            list.add("Không có deadline vào ngày này") ;
         }
-        textView.setText(s);
+
+        // Hiển thị danh sách trong ListView
+        updateListView(list);
 
 
 
-
-
-
+    }
+    private void updateListView(List<String> contentList) {
+        // Xóa dữ liệu cũ
+        adapter.clear();
+        // Thêm dữ liệu mới
+        adapter.addAll(contentList);
+        // Cập nhật ListView
+        adapter.notifyDataSetChanged();
     }
     // Hàm để chuyển đổi định dạng ngày của các card
     private void getFormattedCardDates() {
