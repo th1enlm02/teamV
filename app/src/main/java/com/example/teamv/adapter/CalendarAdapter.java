@@ -17,7 +17,6 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
     private final ArrayList<String> daysOfMonth;
     private final ArrayList<String> deadlineInMonth;
 
-
     private final OnItemListener onItemListener;
 
 
