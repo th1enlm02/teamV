@@ -639,7 +639,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
         final int hour = currentDate.get(Calendar.HOUR_OF_DAY);
         final int minute = currentDate.get(Calendar.MINUTE);
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(CardActivity.this, R.style.DatePickerDialogTheme, new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(CardActivity.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 selectedDeadline = Calendar.getInstance();
@@ -647,7 +647,7 @@ public class CardActivity extends AppCompatActivity implements SwipeRefreshLayou
                 selectedDeadline.set(Calendar.MONTH, month);
                 selectedDeadline.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-                TimePickerDialog timePickerDialog = new TimePickerDialog(CardActivity.this, R.style.DatePickerDialogTheme, new TimePickerDialog.OnTimeSetListener() {
+                TimePickerDialog timePickerDialog = new TimePickerDialog(CardActivity.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                         selectedDeadline.set(Calendar.HOUR_OF_DAY, hourOfDay);
