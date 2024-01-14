@@ -85,6 +85,7 @@ public class Prediction_h extends AppCompatActivity {
             public void onClick(View view) {
 //                Intent intent= new Intent(Prediction_h.this,);
 //                startActivity(intent);
+                onBackPressed();
             }
         });
         radioGroupSex.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
