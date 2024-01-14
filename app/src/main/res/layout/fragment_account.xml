@@ -220,6 +220,7 @@
                 android:layout_height="match_parent"
                 android:background="@color/blue4"
                 android:padding="10dp"
+                android:layout_gravity="end"
                 >
                 <ImageView
                     android:id="@+id/iv_change_password"
@@ -257,6 +258,7 @@
                 android:layout_height="match_parent"
                 android:background="@color/blue4"
                 android:padding="10dp"
+                android:layout_gravity="end"
                 >
                 <ImageView
                     android:id="@+id/iv_logout"
@@ -276,6 +278,52 @@
                     android:textColor="@color/white"
                     android:textSize="16dp"
                     android:textStyle="bold" />
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_predict_heal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/cv_logout"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginTop="10dp"
+            app:cardElevation="10dp"
+            app:cardCornerRadius="20dp"
+            >
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/custom_pink"
+                android:padding="10dp"
+                android:layout_gravity="end"
+                >
+                <ImageView
+                    android:id="@+id/iv_predict_heal_left"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_predict"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    />
+
+                <TextView
+                    android:id="@+id/tv_predict_heal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Tính năng dự đoán sức khỏe"
+                    android:textColor="@color/white"
+                    android:textSize="16dp"
+                    android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/iv_predict_heal_right"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_twinkle"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    />
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
     </RelativeLayout>

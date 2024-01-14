@@ -3,8 +3,6 @@ package com.example.teamv.fragment;
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
 
-import static com.google.common.io.Files.getFileExtension;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -49,12 +47,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.teamv.R;
-import com.example.teamv.activity.CardActivity;
 import com.example.teamv.activity.LoginActivity;
 import com.example.teamv.my_interface.UserDataCallback;
 import com.example.teamv.object.AttachedFile;
-import com.example.teamv.object.Card;
 import com.example.teamv.object.User;
+import com.example.teamv.prediction.Prediction_h;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -76,6 +73,7 @@ import java.io.IOException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -84,7 +82,7 @@ import java.util.Map;
 public class AccountFragment extends Fragment implements UserDataCallback {
     private ImageView ivAvatar;
     private TextView tvFullname, tvEmail, tvGender, tvAge;
-    private CardView cvChangePassword, cvLogout, cvEditProfile;
+    private CardView cvChangePassword, cvLogout, cvEditProfile, cvPredictHeal;
     // Chuc Thien
     private String PREFERENCE_KEY = "LogIn_SharePreferences";
     private String LOGIN_KEY = "LOGIN";
@@ -95,6 +93,8 @@ public class AccountFragment extends Fragment implements UserDataCallback {
     private String password;
     private String email;
     private Bitmap avatarBitmap;
+
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -234,6 +234,13 @@ public class AccountFragment extends Fragment implements UserDataCallback {
             @Override
             public void onClick(View v) {
                 selectImageFromDevice();
+            }
+        });
+        cvPredictHeal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), Prediction_h.class);
+                startActivity(intent);
             }
         });
         return view;
@@ -615,6 +622,7 @@ public class AccountFragment extends Fragment implements UserDataCallback {
         cvEditProfile = (CardView) view.findViewById(R.id.cv_edit_profile);
         cvChangePassword = (CardView) view.findViewById(R.id.cv_change_password);
         cvLogout = (CardView) view.findViewById(R.id.cv_logout);
+        cvPredictHeal = (CardView) view.findViewById(R.id.cv_predict_heal);
     }
 
     @Override
