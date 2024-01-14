@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" >
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <application
@@ -19,38 +20,42 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.Light"
-        tools:targetApi="31" >
+        tools:targetApi="31">
+        <activity
+            android:name=".prediction.Predict_Lastview"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.Light.NoActionBar"/>
+        <activity
+            android:name=".prediction.Prediction_h"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.Light.NoActionBar"/>
+
         <activity
             android:name=".activity.CardActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.Light.NoActionBar"
             android:parentActivityName=".activity.StatusListActivity"
-            />
+            android:theme="@style/Theme.Material3.Light.NoActionBar" />
         <activity
             android:name=".activity.StatusListActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.Light.NoActionBar"
             android:parentActivityName=".activity.MainActivity"
-            />
+            android:theme="@style/Theme.Material3.Light.NoActionBar" />
         <activity
             android:name=".activity.MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.Light.NoActionBar"
-            />
+            android:theme="@style/Theme.Material3.Light.NoActionBar" />
         <activity
             android:name=".activity.LoginActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.Light.NoActionBar"
-            />
+            android:theme="@style/Theme.Material3.Light.NoActionBar" />
         <activity
             android:name=".activity.RegisterActivity"
             android:exported="false"
-            android:theme="@style/Theme.Material3.Light.NoActionBar"
-            />
+            android:theme="@style/Theme.Material3.Light.NoActionBar" />
         <activity
             android:name=".activity.WelcomeActivity"
             android:exported="true"
-            android:theme="@style/Theme.Material3.Light.NoActionBar" >
+            android:theme="@style/Theme.Material3.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
