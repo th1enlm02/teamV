@@ -65,9 +65,11 @@ import java.util.Locale;
 public class CalendarFragment extends Fragment implements CalendarAdapter.OnItemListener, AllCardDataCallback {
     private List<Card> myCardList = new ArrayList<>();
     private List<Card> myCardListForDashBoard = new ArrayList<>();
+    Board board;
 
     private TextView tv_MonthYear,tv_DeadlineInDay; //tv để hiện thông tin tháng năm
     private RecyclerView rv_Calendar;
+    List<String> list;
     private LocalDate selectedDate; // ngày hiện tại
     public CalendarAdapter adapterCalendar;
     private ArrayList<String> deadlinesInMonth ; // những ngày có deadline trong tháng
@@ -109,8 +111,30 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         lv_item_task_in_calendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //
-                //onClickBoardItemGoToStatusList();
+
+                String boardId = getBoardItemId(list.get(position).toString());
+                if (!boardId.equals(""))
+                {
+                    getBoardById(boardId, new BoardCallback() {
+                        @Override
+                        public void onBoardReceived() {
+                            // Xử lý đối tượng Board đã được nhận
+                            if (board != null) {
+                                // Bạn có thể thực hiện các hoạt động liên quan đến Board ở đây
+                                // Ví dụ: onClickBoardItemGoToStatusList(board);
+                                onClickBoardItemGoToStatusList(board);
+
+                            } else {
+                                // Xử lý khi không tìm thấy thông tin Board
+                                Toast.makeText(getContext(), "Không tìm thấy thông tin Board", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+
+
+                    });
+                }
+
             }
         });
 
@@ -587,24 +611,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
     @Override
     public void onItemClick(View view, int position, String dayText)
     {
-//        String s="Danh sách các deadline vào ngày này:\n";
-//        int flag=0;
-//        String day = dayText + " " + monthYearFromDate(selectedDate);
-//        day = convertToFormattedDate(day);
-//
-//        for (Card card : myCardList) {
-//            String deadline = card.getDeadline_at();
-//            if(day.contains(deadline))
-//            {
-//                flag=1;
-//                s+=card.getName()+"\n";
-//            }
-//        }
-//        if(flag==0)
-//        {
-//            s="Không có deadline vào ngày này";
-//        }
-//        textView.setText(s);
+
 
         if(!dayText.equals(""))
         {
@@ -629,7 +636,7 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
 
         if (dayText!="")
         {
-            List<String> list = new ArrayList<>();
+            list = new ArrayList<>();
             int flag = 0;
             String day = dayText + " " + monthYearFromDate(selectedDate);
             day = convertToFormattedDate(day);
@@ -814,6 +821,51 @@ public class CalendarFragment extends Fragment implements CalendarAdapter.OnItem
         // So sánh tháng và năm
         return localDate1.getMonthValue() == localDate2.getMonthValue() &&
                 localDate1.getYear() == localDate2.getYear();
+    }
+
+    //
+    String getBoardItemId(String item)
+    {
+        for (Card card : myCardList)
+        {
+            if (card.getName().equals(item))
+                return card.getBoard_id();
+        }
+        return "";
+    }
+
+    private void getBoardById(String boardId, BoardCallback callback) {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference collectionReference = firestore.collection("Board");
+
+        Query query = collectionReference
+                .whereEqualTo("board_id", boardId);
+
+        query.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            DocumentSnapshot documentSnapshot = queryDocumentSnapshots.getDocuments().get(0);
+                            board = documentSnapshot.toObject(Board.class);
+                            callback.onBoardReceived();
+                        } else {
+                            callback.onBoardReceived();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Xử lý khi truy vấn thất bại
+                        callback.onBoardReceived();
+                    }
+                });
+    }
+
+    // Interface để xử lý callback khi dữ liệu Board được nhận
+    public interface BoardCallback {
+        void onBoardReceived();
     }
 
 
